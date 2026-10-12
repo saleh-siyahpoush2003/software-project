@@ -207,9 +207,9 @@
 
                 setTimeout(() => {
                     if (user.role === 'doctor') {
-                        window.location.href = 'doctor-dashboard.html';
+                        window.location.href = './site/doctor-dashboard.html';
                     } else {
-                        window.location.href = 'patient-dashboard.html';
+                        window.location.href = './site/patient-dashboard.html';
                     }
                 }, 1000);
             } else {
@@ -292,9 +292,9 @@
             setTimeout(() => {
                 sessionStorage.setItem('current_user', JSON.stringify(newUser));
                 if (role === 'doctor') {
-                    window.location.href = 'doctor-dashboard.html';
+                    window.location.href = './site/doctor-dashboard.html';
                 } else {
-                    window.location.href = 'patient-dashboard.html';
+                    window.location.href = './site/patient-dashboard.html';
                 }
             }, 1000);
         }
