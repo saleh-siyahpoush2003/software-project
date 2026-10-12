@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>سامانه نوبت‌دهی درمانگاه | ورود و ثبت‌نام</title>
+    <link rel="stylesheet" href="./style/font.css">
+    <link rel="stylesheet" href="./style/index.css">
+</head>
+
+<body>
+
+    <div class="auth-container">
+        <div class="auth-header">
+            <div class="logo">🏥</div>
+            <h1>سامانه نوبت‌دهی درمانگاه</h1>
+            <p>مدیریت آسان نوبت‌ها، پرونده الکترونیک و ارتباط با پزشک</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab" data-tab="login">ورود</button>
+            <button class="tab active" data-tab="register">ثبت‌نام</button>
+        </div>
+
+        <form class="form-panel" id="login-panel">
+            <div class="message" id="login-message"></div>
+
+            <div class="input-group">
+                <label for="login-mobile">📱 شماره موبایل</label>
+                <input type="tel" id="login-mobile" class="ltr-input" placeholder="مثال: 09123456789" maxlength="11"
+                    inputmode="numeric">
+            </div>
+
+            <div class="input-group">
+                <label for="login-password">🔒 رمز عبور</label>
+                <div class="password-container">
+                    <input type="password" id="login-password" class="ltr-input"
+                        placeholder="رمز عبور خود را وارد کنید">
+                    <button type="button" class="toggle-password" onclick="togglePassword('login-password')">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-primary">ورود به حساب کاربری</button>
+
+            <div class="forgot-link">
+                <a href="#" onclick="handleForgotPassword(event)">رمز عبور خود را فراموش کرده‌اید؟</a>
+            </div>
+        </form>
+
+        <form class="form-panel active" id="register-panel">
+            <div class="message" id="register-message"></div>
+
+            <div class="input-group">
+                <label for="register-name">👤 نام و نام خانوادگی</label>
+                <input type="text" id="register-name" placeholder="نام و نام خانوادگی خود را وارد کنید">
+            </div>
+
+            <div class="input-group">
+                <label for="register-mobile">📱 شماره موبایل</label>
+                <input type="tel" id="register-mobile" class="ltr-input" placeholder="مثال: 09123456789" maxlength="11"
+                    inputmode="numeric">
+            </div>
+
+            <div class="input-group">
+                <label for="register-password">🔒 رمز عبور</label>
+                <div class="password-container">
+                    <input type="password" id="register-password" class="ltr-input" placeholder="حداقل ۶ کاراکتر">
+                    <button type="button" class="toggle-password" onclick="togglePassword('register-password')">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label for="register-password-confirm">🔒 تکرار رمز عبور</label>
+                <div class="password-container">
+                    <input type="password" id="register-password-confirm" class="ltr-input"
+                        placeholder="رمز عبور را دوباره وارد کنید">
+                    <button type="button" class="toggle-password" onclick="togglePassword('register-password-confirm')">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label for="register-role">🩺 نقش شما در سیستم</label>
+                <select id="register-role">
+                    <option value="patient">بیمار</option>
+                    <option value="doctor">پزشک</option>
+                </select>
+            </div>
+
+            <div id="doctor-fields">
+                <div class="input-group">
+                    <label for="doctor-specialty">🩺 تخصص</label>
+                    <input type="text" id="doctor-specialty" placeholder="مثلاً متخصص قلب">
+                </div>
+
+                <div class="input-group">
+                    <label for="doctor-license">🪪 شماره نظام پزشکی</label>
+                    <input type="text" id="doctor-license" class="ltr-input" placeholder="مثلاً 12345">
+                </div>
+            </div>
+
+            <button type="submit" class="btn-primary">ثبت‌نام و ورود به سیستم</button>
+        </form>
+
+        <div class="auth-footer">
+            <p>ورود شما به معنای پذیرش <a href="#" style="color:#2B7A8B;">قوانین و مقررات</a> است</p>
+        </div>
+    </div>
+
+    <script>
+        // آیکون‌های چشم باز و بسته به صورت SVG استاندارد
+        const eyeOpenIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+        const eyeClosedIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
+
+        document.getElementById('login-panel').addEventListener('submit', (e) => {
+            e.preventDefault();
+            handleLogin();
+        });
+
+        document.getElementById('register-panel').addEventListener('submit', (e) => {
+            e.preventDefault();
+            handleRegister();
+        });
+
+        function handleForgotPassword(e) {
+            e.preventDefault();
+            showMessage('login-message', '🔧 لطفاً با پشتیبانی تماس بگیرید.', 'error');
+        }
+
+        function showMessage(elementId, message, type) {
+            const msgDiv = document.getElementById(elementId);
+            msgDiv.textContent = message;
+            msgDiv.className = 'message ' + type;
+
+            setTimeout(() => {
+                msgDiv.className = 'message';
+                msgDiv.textContent = '';
+            }, 3000);
+        }
+
+        function saveUser(userData) {
+            try {
+                let users = JSON.parse(localStorage.getItem('clinic_users')) || [];
+                users.push(userData);
+                localStorage.setItem('clinic_users', JSON.stringify(users));
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        function findUser(mobile, password) {
+            let users = JSON.parse(localStorage.getItem('clinic_users') || '[]');
+            return users.find(u => u.mobile === mobile && u.password === password);
+        }
+
+        function userExists(mobile) {
+            let users = JSON.parse(localStorage.getItem('clinic_users') || '[]');
+            return users.some(u => u.mobile === mobile);
+        }
+
+        function convertPersianToEnglish(str) {
+            const persianNumbers = '۰۱۲۳۴۵۶۷۸۹';
+
+            return str.replace(/[۰-۹]/g, digit => {
+                return persianNumbers.indexOf(digit);
+            });
+        }
+
+        function handleLogin() {
+            const mobileRegex = /^09\d{9}$/;
+            let mobile = document.getElementById('login-mobile').value.trim();
+            mobile = convertPersianToEnglish(mobile);
+            const password = document.getElementById('login-password').value;
+
+            if (!mobile || !password) {
+                showMessage('login-message', '❌ لطفاً شماره موبایل و رمز عبور را وارد کنید', 'error');
+                return;
+            }
+            if (!mobileRegex.test(mobile)) {
+                showMessage('login-message', "❌ فرمت شماره موبایل نادرست است (مثال: 09123456789)", 'error');
+                return;
+            }
+
+            const user = findUser(mobile, password);
+
+            if (user) {
+                sessionStorage.setItem('current_user', JSON.stringify(user));
+                showMessage('login-message', '✅ ورود موفق! در حال انتقال به داشبورد...', 'success');
+
+                setTimeout(() => {
+                    if (user.role === 'doctor') {
+                        window.location.href = 'doctor-dashboard.html';
+                    } else {
+                        window.location.href = 'patient-dashboard.html';
+                    }
+                }, 1000);
+            } else {
+                showMessage('login-message', '❌ شماره موبایل یا رمز عبور اشتباه است', 'error');
+            }
+        }
+
+        function handleRegister() {
+            const mobileRegex = /^09\d{9}$/;
+            const name = document.getElementById('register-name').value.trim();
+            let mobile = document.getElementById('register-mobile').value.trim();
+            mobile = convertPersianToEnglish(mobile);
+            const password = document.getElementById('register-password').value;
+            const passwordConfirm = document.getElementById('register-password-confirm').value;
+            const role = document.getElementById('register-role').value;
+            const specialty = document.getElementById('doctor-specialty').value.trim();
+            const license = document.getElementById('doctor-license').value.trim();
+
+            if (!name || !mobile || !password || !passwordConfirm) {
+                showMessage('register-message', '❌ لطفاً تمام فیلدها را پر کنید', 'error');
+                return;
+            }
+
+            if (!mobileRegex.test(mobile)) {
+                showMessage('register-message', "❌ فرمت شماره موبایل نادرست است", 'error');
+                return;
+            }
+
+            if (password.length < 6) {
+                showMessage('register-message', '❌ رمز عبور باید حداقل ۶ کاراکتر باشد', 'error');
+                return;
+            }
+
+            if (password !== passwordConfirm) {
+                showMessage('register-message', '❌ رمز عبور و تکرار آن مطابقت ندارند', 'error');
+                return;
+            }
+
+            if (userExists(mobile)) {
+                showMessage('register-message', '❌ این شماره موبایل قبلاً ثبت‌نام کرده است', 'error');
+                return;
+            }
+
+            if (role === 'doctor' && (!specialty || !license)) {
+                showMessage('register-message', '❌ لطفاً اطلاعات پزشک را کامل کنید', 'error');
+                return;
+            }
+
+            // ذخیره کاربر جدید (اصلاح فیلدهای پزشک)
+            const newUser = {
+                id: Date.now(),
+                full_name: name,
+                mobile: mobile,
+                password: password,
+                role: role,
+                created_at: new Date().toISOString(),
+                // در صورت وجود مقدار، به آبجکت اصلی اضافه می‌شوند:
+                ...(role === 'doctor' && { specialty: specialty, license: license })
+            };
+
+            saveUser(newUser);
+            document.getElementById('register-panel').reset();
+
+            if (role === 'doctor') {
+                let doctors = JSON.parse(localStorage.getItem('clinic_doctors') || '[]');
+                const newDoctor = {
+                    id: newUser.id,
+                    name: name,
+                    specialty: specialty,
+                    license: license,
+                    rating: 0,
+                    visits: 0
+                };
+                doctors.push(newDoctor);
+                localStorage.setItem('clinic_doctors', JSON.stringify(doctors));
+            }
+
+            showMessage('register-message', '✅ ثبت‌نام موفق! در حال ورود به سیستم...', 'success');
+
+            setTimeout(() => {
+                sessionStorage.setItem('current_user', JSON.stringify(newUser));
+                if (role === 'doctor') {
+                    window.location.href = 'doctor-dashboard.html';
+                } else {
+                    window.location.href = 'patient-dashboard.html';
+                }
+            }, 1000);
+        }
+
+        // جابه‌جایی تب‌ها
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabName = tab.getAttribute('data-tab');
+
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+
+                document.querySelectorAll('.form-panel').forEach(panel => panel.classList.remove('active'));
+                if (tabName === 'login') {
+                    document.getElementById('login-panel').classList.add('active');
+                } else {
+                    document.getElementById('register-panel').classList.add('active');
+                }
+
+                document.getElementById('login-message').className = 'message';
+                document.getElementById('register-message').className = 'message';
+            });
+        });
+
+        // تابع نمایش/مخفی‌سازی رمز عبور همراه با اصلاح آیکون‌ها
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            const toggleBtn = input.parentElement.querySelector('.toggle-password');
+
+            if (input.type === 'password') {
+                input.type = 'text';
+                toggleBtn.innerHTML = eyeClosedIcon;
+            } else {
+                input.type = 'password';
+                toggleBtn.innerHTML = eyeOpenIcon;
+            }
+        }
+
+        // مدیریت تغییر نقش (بیمار / پزشک)
+        const roleSelect = document.getElementById('register-role');
+        const doctorFields = document.getElementById('doctor-fields');
+
+        roleSelect.addEventListener('change', () => {
+            if (roleSelect.value === 'doctor') {
+                doctorFields.style.display = 'block';
+            } else {
+                doctorFields.style.display = 'none';
+                document.getElementById('doctor-specialty').value = '';
+                document.getElementById('doctor-license').value = '';
+            }
+        });
+    </script>
+</body>
+
+</html>
