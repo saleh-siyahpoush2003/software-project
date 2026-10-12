@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>جستجو و رزرو نوبت | سامانه نوبت‌دهی درمانگاه</title>
+    <link rel="stylesheet" href="./style/font.css">
+    <link rel="stylesheet" href="./style/search-doctor.css">
+</head>
+<body>
+
+    <div class="header">
+        <button class="back-btn" onclick="goBack()">←</button>
+        <h1>🔍 جستجوی پزشک</h1>
+    </div>
+
+    <div class="search-bar">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="search-input" placeholder="جستجوی نام پزشک، تخصص..." onkeyup="filterDoctors()">
+    </div>
+
+    <div class="filters-section">
+        <div class="filter-title">🏥 تخصص پزشک</div>
+        <div class="filter-chips" id="specialty-filters">
+            <button class="chip active" data-specialty="all">همه</button>
+            <button class="chip" data-specialty="قلب">❤️ قلب</button>
+            <button class="chip" data-specialty="پوست">🧴 پوست</button>
+            <button class="chip" data-specialty="داخلی">🫀 داخلی</button>
+            <button class="chip" data-specialty="اطفال">👶 اطفال</button>
+            <button class="chip" data-specialty="ارتوپدی">🦴 ارتوپدی</button>
+            <button class="chip" data-specialty="چشم">👁️ چشم</button>
+            <button class="chip" data-specialty="روانشناسی">🧠 روانشناسی</button>
+        </div>
+    </div>
+
+    <div id="doctors-list" class="doctors-list">
+        <!-- پزشکان به صورت داینامیک نمایش داده می‌شوند -->
+    </div>
+
+    <div id="booking-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📅 رزرو نوبت</h3>
+                <button class="close-modal" onclick="closeModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div id="modal-doctor-info"></div>
+
+                <label>📆 انتخاب تاریخ</label>
+                <input type="date" id="appointment-date" class="date-picker">
+
+                <label>🕐 انتخاب ساعت</label>
+                <div class="time-slots" id="time-slots">
+                    <div class="time-slot" data-time="۰۹:۰۰">۰۹:۰۰</div>
+                    <div class="time-slot" data-time="۱۰:۰۰">۱۰:۰۰</div>
+                    <div class="time-slot" data-time="۱۱:۰۰">۱۱:۰۰</div>
+                    <div class="time-slot" data-time="۱۲:۰۰">۱۲:۰۰</div>
+                    <div class="time-slot" data-time="۱۴:۰۰">۱۴:۰۰</div>
+                    <div class="time-slot" data-time="۱۵:۰۰">۱۵:۰۰</div>
+                    <div class="time-slot" data-time="۱۶:۰۰">۱۶:۰۰</div>
+                    <div class="time-slot" data-time="۱۷:۰۰">۱۷:۰۰</div>
+                </div>
+
+                <button class="confirm-btn" onclick="confirmBooking()">✅تأیید و ثبت نوبت</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <button class="nav-item" onclick="location.href='patient-dashboard.html'">
+            <span class="nav-icon">🏠</span>
+            <span class="nav-label">خانه</span>
+        </button>
+        <button class="nav-item active" onclick="location.href='search-doctor.html'">
+            <span class="nav-icon">🔍</span>
+            <span class="nav-label">جستجو</span>
+        </button>
+        <button class="nav-item" onclick="location.href='my-turns.html'">
+            <span class="nav-icon">📅</span>
+            <span class="nav-label">نوبت‌ها</span>
+        </button>
+        <button class="nav-item" onclick="location.href='profile.html'">
+            <span class="nav-icon">👤</span>
+            <span class="nav-label">پروفایل</span>
+        </button>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        let currentDoctor = null;
+        let selectedTime = null;
+        let currentSpecialty = 'all';
+        let searchQuery = '';
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast ' + type;
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        function goBack() {
+            window.location.href = 'patient-dashboard.html';
+        }
+
+        function navigateTo(page) {
+            window.location.href = page;
+        }
+
+        function getCurrentUser() {
+
+            const user = sessionStorage.getItem('current_user');
+
+            if (!user) {
+                window.location.href = 'index.html';
+                return null;
+            }
+
+            const parsedUser = JSON.parse(user);
+
+            return parsedUser;
+        }
+
+        function getDoctors() {
+            return [
+                { id: 1, name: 'دکتر سارا احمدی', specialty: 'متخصص قلب و عروق', specialtyKey: 'قلب', fee: 150000, rating: 4.8 },
+                { id: 2, name: 'دکتر محمد کریمی', specialty: 'متخصص پوست و مو', specialtyKey: 'پوست', fee: 120000, rating: 4.6 },
+                { id: 3, name: 'دکتر رضا محمدی', specialty: 'متخصص داخلی', specialtyKey: 'داخلی', fee: 130000, rating: 4.7 },
+                { id: 4, name: 'دکتر نرگس حسینی', specialty: 'متخصص اطفال', specialtyKey: 'اطفال', fee: 110000, rating: 4.9 },
+                { id: 5, name: 'دکتر علی کریمی', specialty: 'متخصص ارتوپدی', specialtyKey: 'ارتوپدی', fee: 160000, rating: 4.5 },
+                { id: 6, name: 'دکتر زهرا مرادی', specialty: 'متخصص چشم پزشکی', specialtyKey: 'چشم', fee: 140000, rating: 4.7 },
+                { id: 7, name: 'دکتر مهدی رحمانی', specialty: 'روانشناس بالینی', specialtyKey: 'روانشناسی', fee: 180000, rating: 4.9 }
+            ];
+        }
+
+        function syncDoctorsToLocalStorage() {
+            const existingDoctors = localStorage.getItem('clinic_doctors');
+            if (!existingDoctors) {
+                const doctors = getDoctors();
+                localStorage.setItem(
+                    'clinic_doctors',
+                    JSON.stringify(doctors)
+                );
+
+            }
+
+        }
+
+        function renderDoctors() {
+            syncDoctorsToLocalStorage();
+
+            let doctors = JSON.parse(
+                localStorage.getItem('clinic_doctors') || '[]'
+            );
+
+            // اطمینان از وجود فیلدهای مورد نیاز در همه پزشکان
+            doctors = doctors.map(doctor => ({
+                id: doctor.id || 0,
+                name: doctor.name || 'پزشک',
+                specialty: doctor.specialty || 'متخصص',
+                specialtyKey: doctor.specialtyKey || 'عمومی',
+                fee: doctor.fee || 0,  // مقدار پیش‌فرض برای fee
+                rating: doctor.rating || 0  // مقدار پیش‌فرض برای rating
+            }));
+
+            // فیلتر بر اساس تخصص
+            if (currentSpecialty !== 'all') {
+                doctors = doctors.filter(d => d.specialtyKey === currentSpecialty);
+                console.log(`🔍 فیلتر تخصص: ${currentSpecialty} - تعداد پزشکان یافت شده: ${doctors.length}`);
+            }
+
+            // فیلتر بر اساس جستجو
+            if (searchQuery.trim() !== '') {
+                doctors = doctors.filter(d =>
+                    d.name.includes(searchQuery) ||
+                    d.specialty.includes(searchQuery)
+                );
+                console.log(`🔍 فیلتر جستجو: "${searchQuery}" - تعداد پزشکان یافت شده: ${doctors.length}`);
+            }
+
+            const container = document.getElementById('doctors-list');
+
+            if (doctors.length === 0) {
+                let specialtyName = currentSpecialty;
+                if (currentSpecialty === 'قلب') specialtyName = 'قلب و عروق';
+                else if (currentSpecialty === 'پوست') specialtyName = 'پوست و مو';
+                else if (currentSpecialty === 'داخلی') specialtyName = 'داخلی';
+                else if (currentSpecialty === 'اطفال') specialtyName = 'اطفال';
+                else if (currentSpecialty === 'ارتوپدی') specialtyName = 'ارتوپدی';
+                else if (currentSpecialty === 'چشم') specialtyName = 'چشم پزشکی';
+                else if (currentSpecialty === 'روانشناسی') specialtyName = 'روانشناسی';
+
+                container.innerHTML = `
+            <div class="empty-doctors">
+                <div class="empty-icon">❌</div>
+                <p>هیچ پزشکی با تخصص «${specialtyName}» یافت نشد</p>
+                <button onclick="resetFilters()" style="margin-top:16px; background:#2B7A8B; color:white; border:none; padding:8px 20px; border-radius:40px; cursor:pointer;">
+                    حذف فیلترها
+                </button>
+            </div>
+        `;
+                return;
+            }
+
+            let html = '';
+            doctors.forEach(doctor => {
+                // محافظت در برابر undefined
+                const feeAmount = doctor.fee || 0;
+                const ratingValue = doctor.rating || 0;
+
+                html += `
+            <div class="doctor-card">
+                <div class="doctor-avatar">👨‍⚕️</div>
+                <div class="doctor-info">
+                    <div class="doctor-name">${doctor.name}</div>
+                    <div class="doctor-specialty">${doctor.specialty}</div>
+                    <div class="doctor-rating">⭐ ${ratingValue} (۴۵ نظر)</div>
+                    <div class="doctor-fee">💰 ${feeAmount.toLocaleString()} تومان</div>
+                </div>
+                <button class="book-btn" onclick="openBookingModal(${doctor.id})">رزرو نوبت</button>
+            </div>
+        `;
+            });
+            container.innerHTML = html;
+        }
+
+        // حذف فیلترها
+        function resetFilters() {
+            currentSpecialty = 'all';
+            searchQuery = '';
+            document.getElementById('search-input').value = '';
+            document.querySelectorAll('.chip').forEach(chip => {
+                chip.classList.remove('active');
+                if (chip.getAttribute('data-specialty') === 'all') {
+                    chip.classList.add('active');
+                }
+            });
+            renderDoctors();
+        }
+
+        // فیلتر پزشکان بر اساس جستجو
+        function filterDoctors() {
+            const input = document.getElementById('search-input');
+            searchQuery = input.value;
+            renderDoctors();
+        }
+
+        // باز کردن مودال رزرو
+        function openBookingModal(doctorId) {
+            const doctors = JSON.parse(
+                localStorage.getItem('clinic_doctors') || '[]'
+            );
+            currentDoctor = doctors.find(d => d.id === doctorId);
+
+            if (!currentDoctor) return;
+
+            document.getElementById('modal-doctor-info').innerHTML = `
+            <div style="background:#F8F9FA; padding:12px; border-radius:16px; margin-bottom:16px;">
+                <strong>${currentDoctor.name}</strong><br>
+                <span style="font-size:13px; color:#6C757D;">${currentDoctor.specialty}</span>
+                <span style="display:block; margin-top:8px;">💰 ${(Number(currentDoctor?.fee ?? 0)).toLocaleString()} تومان</span>
+            </div>
+        `;
+
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate());
+            const yyyy = tomorrow.getFullYear();
+            const mm = String(tomorrow.getMonth() + 1).padStart(2, '0');
+            const dd = String(tomorrow.getDate()).padStart(2, '0');
+            document.getElementById('appointment-date').value = `${yyyy}-${mm}-${dd}`;
+            document.getElementById('appointment-date').min = `${yyyy}-${mm}-${dd}`;
+
+            selectedTime = null;
+            document.querySelectorAll('.time-slot').forEach(slot => {
+                slot.classList.remove('selected');
+            });
+
+            document.getElementById('booking-modal').classList.add('active');
+        }
+
+        // انتخاب ساعت
+        function setupTimeSlots() {
+            document.querySelectorAll('.time-slot').forEach(slot => {
+                slot.addEventListener('click', function () {
+                    document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedTime = this.getAttribute('data-time');
+                });
+            });
+        }
+
+        function closeModal() {
+            document.getElementById('booking-modal').classList.remove('active');
+            currentDoctor = null;
+            selectedTime = null;
+        }
+
+        function toPersianDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('fa-IR');
+        }
+
+        function confirmBooking() {
+            if (!currentDoctor) {
+                showToast('❌ خطا در انتخاب پزشک', 'error');
+                return;
+            }
+
+            if (!selectedTime) {
+                showToast('❌ لطفاً ساعت مورد نظر را انتخاب کنید', 'error');
+                return;
+            }
+
+            const dateInput = document.getElementById('appointment-date').value;
+            if (!dateInput) {
+                showToast('❌ لطفاً تاریخ را انتخاب کنید', 'error');
+                return;
+            }
+
+
+            const user = getCurrentUser();
+            if (!user) return;
+
+            const persianDate = toPersianDate(dateInput);
+
+            const appointments = JSON.parse(localStorage.getItem('clinic_appointments') || '[]');
+            const userHasAppointment = appointments.some(apt =>
+                apt.patientId === user.id &&
+                apt.appointmentDate === dateInput &&
+                apt.time === selectedTime &&
+                apt.status === 'booked'
+            );
+            if (userHasAppointment) {
+                showToast(
+                    '❌ شما در این ساعت نوبت دیگری دارید',
+                    'error'
+                );
+                return;
+            }
+
+            const alreadyBooked = appointments.some(apt =>
+                apt.doctorId === currentDoctor.id &&
+                apt.appointmentDate === dateInput &&
+                apt.time === selectedTime &&
+                apt.status === 'booked'
+            );
+
+            if (alreadyBooked) {
+                showToast('❌ این ساعت قبلاً رزرو شده است', 'error');
+                return;
+            }
+
+            const newAppointment = {
+                id: Date.now(),
+                patientId: user.id,
+                doctorId: currentDoctor.id,
+                date: persianDate,
+                appointmentDate: dateInput,
+                time: selectedTime,
+                status: 'booked',
+                created_at: new Date().toISOString()
+            };
+
+            appointments.push(newAppointment);
+            localStorage.setItem('clinic_appointments', JSON.stringify(appointments));
+
+            showToast(`✅ نوبت شما با دکتر ${currentDoctor.name} در تاریخ ${persianDate} ساعت ${selectedTime} رزرو شد`, 'success');
+
+            closeModal();
+
+            setTimeout(() => {
+                window.location.href = 'my-turns.html';
+            }, 2000);
+        }
+
+        // راه‌اندازی فیلتر تخصص
+        function setupSpecialtyFilters() {
+            document.querySelectorAll('.chip').forEach(chip => {
+                chip.addEventListener('click', function () {
+                    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+                    this.classList.add('active');
+                    currentSpecialty = this.getAttribute('data-specialty');
+                    console.log(`🩺 تخصص انتخاب شده: ${currentSpecialty}`);
+                    renderDoctors();
+                });
+            });
+        }
+
+        function resetLocalStorageDoctors() {
+            const oldDoctors = localStorage.getItem('clinic_doctors');
+            if (oldDoctors) {
+                const parsed = JSON.parse(oldDoctors);
+                if (parsed.length > 0 && !parsed[0].specialtyKey) {
+                    console.log('🔄 دیتای قدیمی پزشکان پاک شد و با دیتای جدید جایگزین می‌شود');
+                    localStorage.removeItem('clinic_doctors');
+                }
+            }
+            syncDoctorsToLocalStorage();
+        }
+
+        // بارگذاری اولیه
+        function init() {
+            resetLocalStorageDoctors();
+            setupSpecialtyFilters();
+            setupTimeSlots();
+            renderDoctors();
+        }
+
+        init();
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>پزشکان من | سامانه نوبت‌دهی درمانگاه</title>
+    <link rel="stylesheet" href="./style/font.css">
+    <link rel="stylesheet" href="./style/my-doctors.css">
+</head>
+
+<body>
+
+    <div class="header">
+        <button class="back-btn" aria-label="بازگشت" onclick="goBack()">←</button>
+        <h1>👨‍⚕️ پزشکان من</h1>
+    </div>
+
+    <div class="tabs">
+        <button class="tab active" data-type="favorites" aria-label="افزودن به علاقه‌مندی‌ها">⭐ علاقه‌مندی‌ها</button>
+        <button class="tab" data-type="history" aria-label="تب سابقه مراجعه">📋 سابقه مراجعه</button>
+        <button class="tab" data-type="suggestions" aria-label="تب پزشکان پیشنهادی">💡 پیشنهادی</button>
+    </div>
+
+    <div class="search-bar">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="search-input" placeholder="جستجو در پزشکان..." onkeyup="filterDoctors()">
+    </div>
+
+    <div id="doctors-list" class="doctors-list">
+        <!-- پزشکان به صورت داینامیک نمایش داده می‌شوند -->
+    </div>
+
+    <div class="bottom-nav">
+        <button class="nav-item" onclick="location.href='patient-dashboard.html'">
+            <span class="nav-icon">🏠</span>
+            <span class="nav-label">خانه</span>
+        </button>
+        <button class="nav-item" onclick="location.href='search-doctor.html'">
+            <span class="nav-icon">🔍</span>
+            <span class="nav-label">جستجو</span>
+        </button>
+        <button class="nav-item" onclick="location.href='my-turns.html'">
+            <span class="nav-icon">📅</span>
+            <span class="nav-label">نوبت‌ها</span>
+        </button>
+        <button class="nav-item active" onclick="location.href='my-doctors.html'">
+            <span class="nav-icon">👨‍⚕️</span>
+            <span class="nav-label">پزشکان</span>
+        </button>
+        <button class="nav-item" onclick="location.href='profile.html'">
+            <span class="nav-icon">👤</span>
+            <span class="nav-label">پروفایل</span>
+        </button>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        let toastTimeout = null;
+        let currentUser = null;
+        let currentTab = 'favorites';
+        let searchQuery = '';
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast ' + type;
+            toast.classList.add('show');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        function goBack() {
+            window.location.href = 'patient-dashboard.html';
+        }
+
+        function getCurrentUser() {
+            const user = sessionStorage.getItem('current_user');
+            if (!user) {
+                window.location.href = 'index.html';
+                return null;
+            }
+            return JSON.parse(user);
+        }
+
+        // ========== لیست پزشکان ==========
+        function getDoctors() {
+            const doctors = localStorage.getItem('clinic_doctors');
+            if (doctors) {
+                return JSON.parse(doctors);
+            }
+            const defaultDoctors = [
+                { id: 1, name: 'دکتر سارا احمدی', specialty: 'متخصص قلب و عروق', specialtyKey: 'قلب', fee: 150000, rating: 4.8, visits: 3 },
+                { id: 2, name: 'دکتر محمد کریمی', specialty: 'متخصص پوست و مو', specialtyKey: 'پوست', fee: 120000, rating: 4.6, visits: 2 },
+                { id: 3, name: 'دکتر رضا محمدی', specialty: 'متخصص داخلی', specialtyKey: 'داخلی', fee: 130000, rating: 4.7, visits: 1 },
+                { id: 4, name: 'دکتر نرگس حسینی', specialty: 'متخصص اطفال', specialtyKey: 'اطفال', fee: 110000, rating: 4.9, visits: 0 },
+                { id: 5, name: 'دکتر علی کریمی', specialty: 'متخصص ارتوپدی', specialtyKey: 'ارتوپدی', fee: 160000, rating: 4.5, visits: 0 },
+                { id: 6, name: 'دکتر زهرا مرادی', specialty: 'متخصص چشم پزشکی', specialtyKey: 'چشم', fee: 140000, rating: 4.7, visits: 1 },
+                { id: 7, name: 'دکتر مهدی رحمانی', specialty: 'روانشناس بالینی', specialtyKey: 'روانشناسی', fee: 180000, rating: 4.9, visits: 0 }
+            ];
+            localStorage.setItem('clinic_doctors', JSON.stringify(defaultDoctors));
+            return defaultDoctors;
+        }
+
+        // ========== مدیریت علاقه‌مندی‌ها ==========
+        function getFavorites() {
+            const favorites = localStorage.getItem(`favorites_${currentUser.id}`);
+            return favorites ? JSON.parse(favorites) : [];
+        }
+
+        function saveFavorites(favorites) {
+            localStorage.setItem(`favorites_${currentUser.id}`, JSON.stringify(favorites));
+        }
+
+        function toggleFavorite(event, doctorId) {
+            event.stopPropagation();
+            let favorites = getFavorites();
+            if (favorites.includes(doctorId)) {
+                favorites = favorites.filter(id => id !== doctorId);
+                showToast('از علاقه‌مندی‌ها حذف شد');
+            } else {
+                favorites.push(doctorId);
+                showToast('به علاقه‌مندی‌ها اضافه شد');
+            }
+            saveFavorites(favorites);
+            renderDoctors();
+        }
+
+        function isFavorite(doctorId) {
+            return getFavorites().includes(doctorId);
+        }
+
+        // ========== دریافت سابقه مراجعه ==========
+        function getVisitHistory() {
+            const appointments = JSON.parse(localStorage.getItem('clinic_appointments') || '[]');
+            const userAppointments = appointments.filter(apt => apt.patientId === currentUser.id);
+
+            // شمارش تعداد مراجعه به هر پزشک
+            const visitCount = {};
+            const lastVisit = {};
+
+            userAppointments.forEach(apt => {
+                if (apt.status === 'completed' || apt.status === 'booked') {
+                    visitCount[apt.doctorId] = (visitCount[apt.doctorId] || 0) + 1;
+                    if (!lastVisit[apt.doctorId] || apt.date > lastVisit[apt.doctorId]) {
+                        lastVisit[apt.doctorId] = apt.date;
+                    }
+                }
+            });
+
+            return { visitCount, lastVisit };
+        }
+
+        // ========== دریافت پزشکانی که بیمار به آنها مراجعه داشته ==========
+        function getVisitedDoctors() {
+            const appointments = JSON.parse(localStorage.getItem('clinic_appointments') || '[]');
+            const userAppointments = appointments.filter(apt => apt.patientId === currentUser.id);
+            const visitedDoctorIds = new Set();
+
+            userAppointments.forEach(apt => {
+                if (apt.status === 'completed' || apt.status === 'booked') {
+                    visitedDoctorIds.add(apt.doctorId);
+                }
+            });
+
+            return Array.from(visitedDoctorIds);
+        }
+
+        // ========== پیشنهاد پزشک (بر اساس تخصص پزشکانی که قبلاً رفته) ==========
+        function getSuggestedDoctors() {
+            const allDoctors = getDoctors();
+            const visitedIds = getVisitedDoctors();
+            const favorites = getFavorites();
+
+            // پزشکانی که قبلاً رفته یا علاقه‌مند شده
+            const knownIds = [...new Set([...visitedIds, ...favorites])];
+
+            // پیدا کردن تخصص پزشکانی که قبلاً رفته
+            const visitedDoctors = allDoctors.filter(d => visitedIds.includes(d.id));
+            const specialties = [...new Set(visitedDoctors.map(d => d.specialtyKey))];
+
+            // پیشنهاد پزشکان با تخصص مشابه که قبلاً نرفته
+            let suggestions = allDoctors.filter(d =>
+                !knownIds.includes(d.id) && specialties.includes(d.specialtyKey)
+            );
+
+            // اگر پیشنهادی نبود، بهترین پزشکان را پیشنهاد بده
+            if (suggestions.length === 0) {
+                suggestions = allDoctors.filter(d => !knownIds.includes(d.id)).slice(0, 3);
+            }
+
+            return suggestions;
+        }
+
+        // ========== نمایش پزشکان بر اساس تب ==========
+        function renderDoctors() {
+            const allDoctors = getDoctors();
+            const favorites = getFavorites();
+            const visitedIds = getVisitedDoctors();
+            const suggestions = getSuggestedDoctors();
+            const { visitCount, lastVisit } = getVisitHistory();
+
+            let doctorsToShow = [];
+
+            if (currentTab === 'favorites') {
+                doctorsToShow = allDoctors.filter(d => favorites.includes(d.id));
+            } else if (currentTab === 'history') {
+                doctorsToShow = allDoctors.filter(d => visitedIds.includes(d.id));
+            } else {
+                doctorsToShow = suggestions;
+            }
+
+            // فیلتر جستجو
+            if (searchQuery.trim() !== '') {
+                const normalizedQuery = searchQuery.trim().toLowerCase();
+
+                doctorsToShow = doctorsToShow.filter(d => {
+
+                    return (
+                        d.name.toLowerCase().includes(normalizedQuery) ||
+                        d.specialty.toLowerCase().includes(normalizedQuery)
+                    );
+                });
+            }
+
+            const container = document.getElementById('doctors-list');
+
+            if (doctorsToShow.length === 0) {
+                let emptyMessage = '';
+                let emptyIcon = '📭';
+
+                if (currentTab === 'favorites') {
+                    emptyMessage = 'پزشکی به علاقه‌مندی‌ها اضافه نشده است';
+                    emptyIcon = '⭐';
+                } else if (currentTab === 'history') {
+                    emptyMessage = 'هنوز به پزشکی مراجعه نداشته‌اید';
+                    emptyIcon = '📋';
+                } else {
+                    emptyMessage = 'پیشنهادی برای شما وجود ندارد';
+                    emptyIcon = '💡';
+                }
+
+                container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">${emptyIcon}</div>
+                    <p>${emptyMessage}</p>
+                    <button onclick="location.href='search-doctor.html'" class="empty-action-btn">
+                        🔍 جستجوی پزشک
+                    </button>
+                </div>
+            `;
+                return;
+            }
+
+            let html = '';
+            doctorsToShow.forEach(doctor => {
+                const isFav = isFavorite(doctor.id);
+                const visitCountNum = visitCount[doctor.id] || 0;
+                const lastVisitDate = lastVisit[doctor.id] || '---';
+
+                html += `
+                <div class="doctor-card">
+                    <div class="doctor-avatar">👨‍⚕️</div>
+                    <div class="doctor-info">
+                        <div class="doctor-name">
+                            ${doctor.name}
+                            <span class="favorite-icon ${isFav ? '' : 'not-favorite'}" onclick="toggleFavorite(event, ${doctor.id})">
+                                ${isFav ? '⭐' : '☆'}
+                            </span>
+                        </div>
+                        <div class="doctor-specialty">${doctor.specialty}</div>
+                        <div class="doctor-stats">
+                            <span>⭐ ${doctor.rating}</span>
+                            <span class="last-visit">💰 ${(doctor.fee || 0).toLocaleString()} تومان</span>
+                            ${currentTab === 'history' ? `<span>📅 آخرین مراجعه: ${formatPersianDate(lastVisitDate)}</span>` : ''}
+                            ${visitCountNum > 0 ? `<span>🩺 ${visitCountNum} نوبت</span>` : ''}
+                        </div>
+                    </div>
+                    <button class="book-btn" onclick="bookAppointment(${doctor.id})">📅 نوبت جدید</button>
+                </div>
+            `;
+            });
+            container.innerHTML = html;
+        }
+
+        function filterDoctors() {
+            searchQuery = document.getElementById('search-input').value;
+            renderDoctors();
+        }
+
+        // ========== رزرو نوبت سریع ==========
+        function bookAppointment(doctorId) {
+            const doctors = getDoctors();
+            const doctor = doctors.find(d => d.id === doctorId);
+
+            if (!doctor) return;
+
+            // ذخیره پزشک انتخاب شده برای صفحه رزرو
+            sessionStorage.setItem('selected_doctor_id', doctorId);
+
+            // رفتن به صفحه جستجو با پزشک انتخاب شده
+            window.location.href = `search-doctor.html?doctor=${doctorId}`;
+        }
+
+        // ========== تنظیم تب‌ها ==========
+        function setupTabs() {
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', function () {
+                    const tabType = this.getAttribute('data-type');
+                    currentTab = tabType;
+
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+
+                    // پاک کردن جستجو
+                    document.getElementById('search-input').value = '';
+                    searchQuery = '';
+
+                    renderDoctors();
+                });
+            });
+        }
+
+        // ========== مقداردهی اولیه دیتا ==========
+        function initData() {
+            // اطمینان از وجود دیتای پزشکان
+            getDoctors();
+
+            // ایجاد چند نوبت نمونه برای نمایش سابقه (اگر خالی باشد)
+            const appointments = JSON.parse(localStorage.getItem('clinic_appointments') || '[]');
+            const userAppointments = appointments.filter(apt => apt.patientId === currentUser.id);
+        }
+
+        // ========== اجرای اولیه ==========
+        function init() {
+            currentUser = getCurrentUser();
+            if (!currentUser) return;
+
+            if (currentUser.role !== 'patient') {
+
+                window.location.href = 'index.html';
+                return;
+            }
+
+            initData();
+            setupTabs();
+            renderDoctors();
+        }
+
+        init();
+
+        function formatPersianDate(dateString) {
+            if (!dateString || dateString === '---') {
+                return '---';
+            }
+            return dateString;
+        }
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,298 @@
+<html lang="fa" dir="rtl">
+<!DOCTYPE html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>داشبورد بیمار | سامانه نوبت‌دهی درمانگاه</title>
+    <link rel="stylesheet" href="./style/font.css">
+    <link rel="stylesheet" href="./style/patient-dashboard.css">
+</head>
+
+<body>
+
+    <div class="header">
+        <div class="header-right">
+            <div class="logo-icon">🏥</div>
+            <div class="greeting" id="greeting">
+                <h3>خوش آمدید</h3>
+                <p>بیمار گرامی</p>
+            </div>
+        </div>
+        <div class="header-left">
+            <button class="icon-btn" onclick="logout()">🚪 <span>خروج</span></button>
+        </div>
+    </div>
+
+    <div class="date-bar">
+        <span class="date-text">📅 امروز</span>
+        <span class="date-text"><strong id="today-date"></strong></span>
+    </div>
+
+    <div id="next-appointment-container"></div>
+
+    <div class="quick-actions">
+        <div class="action-card" onclick="location.href='search-doctor.html'">
+            <div class="action-icon">📅</div>
+            <div class="action-title">نوبت جدید</div>
+        </div>
+        <div class="action-card" onclick="location.href='my-doctors.html'">
+            <div class="action-icon">👨‍⚕️</div>
+            <div class="action-title">پزشکان من</div>
+        </div>
+        <div class="action-card" onclick="location.href='health-record.html'">
+            <div class="action-icon">📁</div>
+            <div class="action-title">پرونده سلامت</div>
+        </div>
+    </div>
+
+    <div class="section-title">
+        <h3>📋 نوبت‌های آینده</h3>
+        <a onclick="location.href='my-turns.html'">مشاهده همه</a>
+    </div>
+
+    <!-- مودال لغو نوبت -->
+    <div id="cancel-modal" class="modal">
+        <div class="modal-content">
+            <h3>❌ لغو نوبت</h3>
+            <p>آیا از لغو این نوبت مطمئن هستید؟</p>
+            <div class="modal-buttons">
+                <button class="modal-cancel" onclick="closeCancelModal()">انصراف</button>
+                <button class="modal-confirm" onclick="confirmCancel()">لغو نوبت</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="appointments-list" class="appointment-list"></div>
+
+    <div class="bottom-nav">
+        <button class="nav-item active" onclick="location.href='patient-dashboard.html'">
+            <span class="nav-icon">🏠</span>
+            <span class="nav-label">خانه</span>
+        </button>
+        <button class="nav-item" onclick="location.href='search-doctor.html'">
+            <span class="nav-icon">🔍</span>
+            <span class="nav-label">جستجو</span>
+        </button>
+        <button class="nav-item" onclick="location.href='my-turns.html'">
+            <span class="nav-icon">📅</span>
+            <span class="nav-label">نوبت‌ها</span>
+        </button>
+        <button class="nav-item" onclick="location.href='my-doctors.html'">
+            <span class="nav-icon">👨‍⚕️</span>
+            <span class="nav-label">پزشکان</span>
+        </button>
+        <button class="nav-item" onclick="location.href='profile.html'">
+            <span class="nav-icon">👤</span>
+            <span class="nav-label">پروفایل</span>
+        </button>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        let pendingCancelId = null;
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast ' + type;
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        function logout() {
+            sessionStorage.removeItem('current_user');
+            window.location.replace('index.html');
+        }
+
+        // مودال لغو نوبت
+        function openCancelModal(appointmentId) {
+            pendingCancelId = appointmentId;
+            document.getElementById('cancel-modal').classList.add('active');
+        }
+
+        function closeCancelModal() {
+            pendingCancelId = null;
+            document.getElementById('cancel-modal').classList.remove('active');
+        }
+
+        function confirmCancel() {
+            if (pendingCancelId) {
+                cancelAppointment(pendingCancelId);
+                closeCancelModal();
+            }
+        }
+
+        function getPersianDate() {
+            const date = new Date();
+            return date.toLocaleDateString('fa-IR');
+        }
+
+        document.getElementById('today-date').textContent = getPersianDate();
+
+        //
+        function getCurrentUser() {
+
+            const user = sessionStorage.getItem('current_user');
+
+            if (!user) {
+                window.location.href = 'index.html';
+                return null;
+            }
+
+            const parsedUser = JSON.parse(user);
+
+            return parsedUser;
+        }
+
+        //
+        function getDoctors() {
+            const doctors = localStorage.getItem('clinic_doctors');
+            if (doctors) {
+                return JSON.parse(doctors);
+            }
+            const defaultDoctors = [
+                { id: 1, name: 'دکتر سارا احمدی', specialty: 'متخصص قلب و عروق', specialtyKey: 'قلب', fee: 150000, rating: 4.8, visits: 3 },
+                { id: 2, name: 'دکتر محمد کریمی', specialty: 'متخصص پوست و مو', specialtyKey: 'پوست', fee: 120000, rating: 4.6, visits: 2 },
+                { id: 3, name: 'دکتر رضا محمدی', specialty: 'متخصص داخلی', specialtyKey: 'داخلی', fee: 130000, rating: 4.7, visits: 1 },
+                { id: 4, name: 'دکتر نرگس حسینی', specialty: 'متخصص اطفال', specialtyKey: 'اطفال', fee: 110000, rating: 4.9, visits: 0 },
+                { id: 5, name: 'دکتر علی کریمی', specialty: 'متخصص ارتوپدی', specialtyKey: 'ارتوپدی', fee: 160000, rating: 4.5, visits: 0 },
+                { id: 6, name: 'دکتر زهرا مرادی', specialty: 'متخصص چشم پزشکی', specialtyKey: 'چشم', fee: 140000, rating: 4.7, visits: 1 },
+                { id: 7, name: 'دکتر مهدی رحمانی', specialty: 'روانشناس بالینی', specialtyKey: 'روانشناسی', fee: 180000, rating: 4.9, visits: 0 }
+            ];
+            localStorage.setItem('clinic_doctors', JSON.stringify(defaultDoctors));
+            return defaultDoctors;
+        }
+
+        function getUserAppointments(userId) {
+            const appointments = JSON.parse(
+                localStorage.getItem('clinic_appointments') || '[]'
+            );
+
+            return appointments
+                .filter(apt =>
+                    apt.patientId === userId &&
+                    apt.status === 'booked' &&
+                    apt.appointmentDate
+                )
+                .sort(
+                    (a, b) =>
+                        new Date(a.appointmentDate) - new Date(b.appointmentDate)
+                );
+        }
+
+        function saveAppointments(appointments) {
+            localStorage.setItem('clinic_appointments', JSON.stringify(appointments));
+        }
+
+        function cancelAppointment(appointmentId) {
+            const appointments = JSON.parse(localStorage.getItem('clinic_appointments') || '[]');
+
+            const updatedAppointments = appointments.map(apt => {
+                if (apt.id === appointmentId) {
+                    return {
+                        ...apt,
+                        status: 'canceled',
+                        canceledAt: new Date().toISOString()
+                    };
+                }
+                return apt;
+            });
+
+            saveAppointments(updatedAppointments);
+
+            showToast('✅ نوبت با موفقیت لغو شد', 'success');
+
+            loadDashboard();
+        }
+
+        function formatAppointmentDate(value) {
+            const date = new Date(value);
+            if (isNaN(date.getTime())) return '---';
+            return date.toLocaleDateString('fa-IR');
+        }
+
+        function renderNextAppointment(appointments, doctors) {
+            const container = document.getElementById('next-appointment-container');
+
+            if (appointments.length === 0) {
+                container.innerHTML = `
+                <div class="no-appointment">
+                    <p>✨ شما نوبتی ندارید</p>
+                    <button class="new-appointment-btn" onclick="location.href='search-doctor.html'">+ گرفتن نوبت جدید</button>
+                </div>
+            `;
+                return;
+            }
+
+            const nextApt = appointments[0];
+            const doctor = doctors.find(d => d.id === nextApt.doctorId);
+
+            container.innerHTML = `
+            <div class="next-appointment">
+                <h4>⭐ نوبت بعدی شما</h4>
+                <h2>${doctor ? doctor.name : 'پزشک'}</h2>
+                <div class="specialty">${doctor ? doctor.specialty : ''}</div>
+                <div class="datetime">📅 ${formatAppointmentDate(nextApt.appointmentDate)} | 🕐 ${nextApt.time}</div>
+                <button class="cancel-btn" onclick="openCancelModal(${nextApt.id})">لغو نوبت</button>
+                </div>
+                `;
+        }
+        // <button class="cancel-btn" onclick="cancelAppointment(${nextApt.id})">لغو نوبت</button>
+
+        function renderAppointmentsList(appointments, doctors) {
+            const container = document.getElementById('appointments-list');
+
+            if (appointments.length === 0) {
+                container.innerHTML = `
+                <div style="text-align:center; padding:40px; color:#6C757D;">
+                    📭 نوبتی یافت نشد
+                </div>
+            `;
+                return;
+            }
+
+            let html = '';
+            appointments.forEach(apt => {
+                const doctor = doctors.find(d => d.id === apt.doctorId);
+                html += `
+                <div class="appointment-item">
+                    <div class="appointment-info">
+                        <h4>${doctor ? doctor.name : 'پزشک'}</h4>
+                        <div class="spec">${doctor ? doctor.specialty : ''}</div>
+                        <div class="date-time">📅 ${formatAppointmentDate(apt.appointmentDate)} | 🕐 ${apt.time}</div>
+                    </div>
+                    <div>
+                        <span class="status-badge">رزرو شده</span>
+                    </div>
+                </div>
+            `;
+            });
+            container.innerHTML = html;
+        }
+
+        function loadDashboard() {
+            const user = getCurrentUser();
+            if (!user) return;
+
+            document.querySelector('.greeting h3').textContent = `سلام ${user.full_name || 'کاربر'} عزیز`;
+
+            const doctors = getDoctors();
+            let appointments = getUserAppointments(user.id);
+
+            appointments = appointments.sort(
+                (a, b) =>
+                    new Date(a.appointmentDate) - new Date(b.appointmentDate)
+            );
+
+            renderNextAppointment(appointments, doctors);
+            renderAppointmentsList(appointments, doctors);
+        }
+        loadDashboard();
+    </script>
+
+</body>
+
+</html>

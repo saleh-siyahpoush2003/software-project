@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>پروفایل کاربری | سامانه نوبت‌دهی درمانگاه</title>
+    <link rel="stylesheet" href="./style/font.css">
+    <link rel="stylesheet" href="./style/profile.css">
+</head>
+
+<body>
+
+    <div class="header">
+        <button class="back-btn" onclick="goBack()">←</button>
+        <h1>👤 پروفایل من</h1>
+    </div>
+
+    <div class="avatar-section">
+        <div class="avatar" id="avatar-icon">👤</div>
+        <h3 id="profile-name" style="margin-bottom: 8px;">نام کاربر</h3>
+        <span class="role-badge" id="profile-role">بیمار</span>
+    </div>
+
+    <div class="info-card">
+        <div class="info-title">📋 اطلاعات شخصی</div>
+        <div id="info-display"></div>
+        <div id="info-edit" style="display: none;"></div>
+        <div id="button-group" class="button-group">
+            <button class="edit-btn" onclick="enableEdit()">✏️ ویرایش اطلاعات</button>
+        </div>
+    </div>
+
+    <div class="info-card">
+        <div class="info-title">⚙️ تنظیمات</div>
+
+        <div class="settings-item">
+            <div>
+                <div class="settings-label">🔔 اعلان‌ها</div>
+                <div class="settings-desc">دریافت یادآوری نوبت و پیام‌ها</div>
+            </div>
+            <div class="toggle-switch" id="notif-toggle" onclick="toggleNotification()">
+                <div class="toggle-circle"></div>
+            </div>
+        </div>
+
+        <div class="settings-item">
+            <div>
+                <div class="settings-label">🌙 حالت شب</div>
+                <div class="settings-desc">تغییر تم به رنگ تیره</div>
+            </div>
+            <div class="toggle-switch" id="dark-toggle" onclick="toggleDarkMode()">
+                <div class="toggle-circle"></div>
+            </div>
+        </div>
+
+        <div class="settings-item">
+            <div>
+                <div class="settings-label">🔤 فونت بزرگ</div>
+                <div class="settings-desc">مناسب برای سالمندان و کم‌بینایان</div>
+            </div>
+            <div class="toggle-switch" id="font-toggle" onclick="toggleLargeFont()">
+                <div class="toggle-circle"></div>
+            </div>
+        </div>
+    </div>
+
+    <button class="logout-btn" onclick="logout()">🚪 خروج از حساب کاربری</button>
+
+    <div class="bottom-nav">
+        <button class="nav-item" onclick="location.href='patient-dashboard.html'"><span class="nav-icon">🏠</span><span
+                class="nav-label">خانه</span></button>
+        <button class="nav-item" onclick="location.href='search-doctor.html'"><span class="nav-icon">🔍</span><span
+                class="nav-label">جستجو</span></button>
+        <button class="nav-item" onclick="location.href='my-turns.html'"><span class="nav-icon">📅</span><span
+                class="nav-label">نوبت‌ها</span></button>
+        <button class="nav-item active" onclick="location.href='profile.html'"><span class="nav-icon">👤</span><span
+                class="nav-label">پروفایل</span></button>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        let currentUser = null;
+        let isEditing = false;
+        let toastTimeout = null;
+
+        // اصلاح موتور رندر توست بدون تداخل انیمیشن
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type} show`;
+
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        function goBack() {
+            if (currentUser && currentUser.role === 'doctor') {
+                window.location.href = 'doctor-dashboard.html';
+            } else {
+                window.location.href = 'patient-dashboard.html';
+            }
+        }
+
+        function getCurrentUser() {
+            const user = sessionStorage.getItem('current_user');
+            if (!user) {
+                window.location.href = 'index.html';
+                return null;
+            }
+            return JSON.parse(user);
+        }
+
+        function saveUserToStorage(updatedUser) {
+
+            let users = JSON.parse(
+                localStorage.getItem('clinic_users') || '[]'
+            );
+
+            const index = users.findIndex(
+                u => u.id === updatedUser.id
+            );
+
+            if (index === -1) {
+                showToast(
+                    'خطا در ذخیره اطلاعات کاربر',
+                    'error'
+                );
+                return;
+            }
+
+            users[index] = updatedUser;
+
+            localStorage.setItem(
+                'clinic_users',
+                JSON.stringify(users)
+            );
+
+            sessionStorage.setItem(
+                'current_user',
+                JSON.stringify(updatedUser)
+            );
+
+            currentUser = updatedUser;
+        }
+
+        function displayInfo() {
+            const displayDiv = document.getElementById('info-display');
+            displayDiv.innerHTML = `
+                <div class="info-row">
+                    <div class="info-label">نام کاربری:</div>
+                    <div class="info-value">${currentUser.full_name || '---'}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">شماره موبایل:</div>
+                    <div class="info-value" style="direction: ltr; text-align: right;">${currentUser.mobile || '---'}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">کد ملی:</div>
+                    <div class="info-value">${currentUser.national_code || 'ثبت نشده'}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">ایمیل:</div>
+                    <div class="info-value">${currentUser.email || 'ثبت نشده'}</div>
+                </div>
+                <div class="info-row" style="border-bottom:none;">
+                    <div class="info-label">تاریخ عضویت:</div>
+                    <div class="info-value">${currentUser.created_at ? new Date(currentUser.created_at).toLocaleDateString('fa-IR') : '---'}</div>
+                </div>
+            `;
+        }
+
+        function enableEdit() {
+            isEditing = true;
+            const editDiv = document.getElementById('info-edit');
+            editDiv.style.display = 'block';
+
+            editDiv.innerHTML = `
+                <div class="info-row">
+                    <div class="info-label">نام کاربری:</div>
+                    <div class="info-value"><input type="text" id="edit-name" value="${currentUser.full_name || ''}"></div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">شماره موبایل:</div>
+                    <div class="info-value">
+                        <input type="tel" id="edit-mobile" value="${currentUser.mobile || ''}" readonly style="opacity: 0.6; background: var(--border-color);">
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">کد ملی:</div>
+                    <div class="info-value"><input type="text" id="edit-national" maxlength="10" value="${currentUser.national_code || ''}" placeholder="۱۰ رقم کد ملی"></div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">ایمیل:</div>
+                    <div class="info-value"><input type="email" id="edit-email" value="${currentUser.email || ''}" placeholder="example@email.com" style="direction: ltr; text-align: right;"></div>
+                </div>
+            `;
+
+            document.getElementById('button-group').innerHTML = `
+                <button class="save-btn" onclick="saveInfo()">✅ ذخیره تغییرات</button>
+                <button class="cancel-btn" onclick="cancelEdit()">✖️ انصراف</button>
+            `;
+            document.getElementById('info-display').style.display = 'none';
+        }
+
+        // اضافه شدن موتور ولیدیشن دقیق فیلدها
+        function saveInfo() {
+            const newName = document.getElementById('edit-name').value.trim();
+            const newNational = document.getElementById('edit-national').value.trim();
+            const newEmail = document.getElementById('edit-email').value.trim();
+
+            if (!newName) {
+                showToast('❌ نام و نام خانوادگی الزامی است', 'error');
+                return;
+            }
+
+            // بررسی فرمت صحیح کد ملی (۱۰ رقم عددی)
+            if (newNational && !/^\d{10}$/.test(newNational)) {
+                showToast('❌ کد ملی وارد شده باید دقیقاً ۱۰ رقم عددی باشد', 'error');
+                return;
+            }
+
+            // بررسی فرمت ایمیل استاندارد
+            if (newEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) {
+                showToast('❌ ساختار نشانی ایمیل نامعتبر است', 'error');
+                return;
+            }
+
+            currentUser.full_name = newName;
+            currentUser.national_code = newNational;
+            currentUser.email = newEmail;
+
+            saveUserToStorage(currentUser);
+            document.getElementById('profile-name').textContent = currentUser.full_name;
+            showToast('✅ اطلاعات کاربری با موفقیت بروز شد', 'success');
+            cancelEdit();
+        }
+
+        function cancelEdit() {
+            isEditing = false;
+            document.getElementById('info-edit').style.display = 'none';
+            document.getElementById('info-display').style.display = 'block';
+            document.getElementById('button-group').innerHTML = `<button class="edit-btn" onclick="enableEdit()">✏️ ویرایش اطلاعات</button>`;
+            displayInfo();
+        }
+
+        function toggleNotification() {
+            const toggle = document.getElementById('notif-toggle');
+            const isActive = toggle.classList.contains('active');
+            toggle.classList.toggle('active');
+            localStorage.setItem(
+                `notifications_enabled_${currentUser.id}`,
+                !isActive
+            );
+            showToast(!isActive ? '🔔 اعلان نوبت‌ها فعال شد' : '🔕 اعلان‌ها غیرفعال شدند', 'success');
+        }
+
+        // اصلاح کامل منطق کلاس‌محور تم تاریک برای رندر سراسری المان‌ها
+        function toggleDarkMode() {
+            const toggle = document.getElementById('dark-toggle');
+            const isDark = document.body.classList.contains('dark-mode');
+
+            if (isDark) {
+                document.body.classList.remove('dark-mode');
+                toggle.classList.remove('active');
+                localStorage.setItem(
+                    `dark_mode_${currentUser.id}`,
+                    'false'
+                );
+                showToast('🌞 حالت روز فعال شد', 'success');
+            } else {
+                document.body.classList.add('dark-mode');
+                toggle.classList.add('active');
+                localStorage.setItem(
+                    `dark_mode_${currentUser.id}`,
+                    'true'
+                );
+                showToast('🌙 حالت شب فعال شد', 'success');
+            }
+        }
+
+        function toggleLargeFont() {
+            const toggle = document.getElementById('font-toggle');
+            const isLarge = document.body.classList.contains('large-font');
+
+            if (isLarge) {
+                document.body.classList.remove('large-font');
+                toggle.classList.remove('active');
+                localStorage.setItem(
+                    `large_font_${currentUser.id}`,
+                    'false'
+                );
+                showToast('🔤 اندازه قلم به حالت استاندارد برگشت', 'success');
+            } else {
+                document.body.classList.add('large-font');
+                toggle.classList.add('active');
+                localStorage.setItem(
+                    `large_font_${currentUser.id}`,
+                    'true'
+                );
+                showToast('🔤 فونت بزرگ برای خوانایی بهتر فعال شد', 'success');
+            }
+        }
+
+        function loadSettings() {
+            if (
+                localStorage.getItem(
+                    `notifications_enabled_${currentUser.id}`
+                ) === 'true'
+            ) {
+                document.getElementById('notif-toggle').classList.add('active');
+            }
+            if (
+                localStorage.getItem(
+                    `dark_mode_${currentUser.id}`
+                ) === 'true'
+            ) {
+                document.getElementById('dark-toggle').classList.add('active');
+                document.body.classList.add('dark-mode');
+            }
+            if (
+                localStorage.getItem(
+                    `large_font_${currentUser.id}`
+                ) === 'true'
+            ) {
+                document.getElementById('font-toggle').classList.add('active');
+                document.body.classList.add('large-font');
+            }
+        }
+
+        function logout() {
+            sessionStorage.removeItem('current_user');
+            showToast('🚪 خروج موفقیت‌آمیز بود. در حال انتقال...', 'success');
+            setTimeout(() => { window.location.href = 'index.html'; }, 2000);
+        }
+
+        function init() {
+            currentUser = getCurrentUser();
+            if (!currentUser) return;
+
+            document.getElementById('profile-name').textContent = currentUser.full_name || 'کاربر سیستم';
+            document.getElementById('profile-role').textContent = currentUser.role === 'doctor' ? '👨‍⚕️ پزشک درمانگاه' : '🩺 بیمار';
+            document.getElementById('avatar-icon').textContent = currentUser.role === 'doctor' ? '👨‍⚕️' : '👤';
+
+            displayInfo();
+            loadSettings();
+        }
+
+        init();
+    </script>
+</body>
+
+</html>

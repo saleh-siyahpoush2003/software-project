@@ -1,0 +1,391 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Vazirmatn', sans-serif;
+    background: #F8F9FA;
+    min-height: 100vh;
+    padding-bottom: 80px;
+}
+
+/* نوار بالایی */
+.header {
+    background: white;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.back-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.back-btn:hover {
+    background: #F8F9FA;
+}
+
+.header h1 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #343A40;
+}
+
+/* تب‌ها */
+.tabs {
+    display: flex;
+    background: white;
+    margin: 16px;
+    border-radius: 60px;
+    padding: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.tab {
+    flex: 1;
+    text-align: center;
+    padding: 10px 0;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: 'Vazirmatn', sans-serif;
+    background: none;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #6C757D;
+}
+
+.tab.active {
+    background: #2B7A8B;
+    color: white;
+}
+
+/* لیست نوبت‌ها */
+.appointments-list {
+    margin: 0 16px;
+}
+
+.appointment-card {
+    background: white;
+    border-radius: 20px;
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    border: 1px solid #E9ECEF;
+    transition: all 0.2s;
+}
+
+.appointment-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.doctor-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: #343A40;
+}
+
+.specialty {
+    font-size: 12px;
+    color: #6C757D;
+    margin-top: 4px;
+}
+
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 40px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.status-badge.booked {
+    background: #F0FDF4;
+    color: #28A745;
+}
+
+.status-badge.completed {
+    background: #E9ECEF;
+    color: #6C757D;
+}
+
+.status-badge.canceled {
+    background: #FEF3F2;
+    color: #DC3545;
+}
+
+.card-body {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #6C757D;
+}
+
+.info-icon {
+    font-size: 16px;
+}
+
+.cancel-btn {
+    background: none;
+    border: 1px solid #DC3545;
+    color: #DC3545;
+    padding: 6px 14px;
+    border-radius: 40px;
+    font-size: 12px;
+    font-family: 'Vazirmatn', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.cancel-btn:hover {
+    background: #DC3545;
+    color: white;
+}
+
+.rate-btn {
+    background: none;
+    border: 1px solid #FFB800;
+    color: #FFB800;
+    padding: 6px 14px;
+    border-radius: 40px;
+    font-size: 12px;
+    font-family: 'Vazirmatn', sans-serif;
+    cursor: pointer;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #6C757D;
+}
+
+.empty-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+/* مودال لغو نوبت */
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 200;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+
+    transition: opacity 0.25s ease;
+}
+
+.modal.active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 32px;
+    width: 100%;
+    max-width: 350px;
+    text-align: center;
+    padding: 24px;
+    transform: scale(0.9);
+    transition: transform 0.25s ease;
+}
+
+.modal.active .modal-content {
+    transform: scale(1);
+}
+
+.modal-content h3 {
+    font-size: 20px;
+    margin-bottom: 12px;
+}
+
+.modal-content p {
+    color: #6C757D;
+    margin-bottom: 24px;
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 12px;
+}
+
+.modal-confirm {
+    flex: 1;
+    background: #DC3545;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 40px;
+    font-family: 'Vazirmatn', sans-serif;
+    cursor: pointer;
+}
+
+.modal-cancel {
+    flex: 1;
+    background: #E9ECEF;
+    color: #343A40;
+    border: none;
+    padding: 12px;
+    border-radius: 40px;
+    font-family: 'Vazirmatn', sans-serif;
+    cursor: pointer;
+}
+
+/* مودال امتیاز دهی */
+.rating-stars {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin: 16px 0;
+}
+
+.star {
+    font-size: 32px;
+    cursor: pointer;
+    color: #E9ECEF;
+    transition: all 0.1s;
+}
+
+.star.active {
+    color: #FFB800;
+}
+
+/* نوار پایینی */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    display: flex;
+    justify-content: space-around;
+    padding: 12px 20px;
+    border-top: 1px solid #E9ECEF;
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    background: none;
+    border: none;
+    font-family: 'Vazirmatn', sans-serif;
+    cursor: pointer;
+    padding: 4px 12px;
+    border-radius: 20px;
+}
+
+.nav-item .nav-icon {
+    font-size: 22px;
+}
+
+.nav-item .nav-label {
+    font-size: 11px;
+    color: #6C757D;
+}
+
+.nav-item.active .nav-icon,
+.nav-item.active .nav-label {
+    color: #2B7A8B;
+}
+
+/* toast */
+.toast {
+    position: fixed;
+    bottom: 100px;
+    left: 50%;
+    background: #343A40;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 40px;
+    font-size: 13px;
+    z-index: 300;
+
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+
+    transition: all 0.3s ease;
+    transform: translateX(-50%) translateY(20px);
+}
+
+.toast.show {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateX(-50%) translateY(0);
+    -webkit-transform: translateX(-50%) translateY(0);
+    -moz-transform: translateX(-50%) translateY(0);
+    -ms-transform: translateX(-50%) translateY(0);
+    -o-transform: translateX(-50%) translateY(0);
+}
+
+.toast.success {
+    background: #28A745;
+}
+
+.toast.error {
+    background: #DC3545;
+}
+
+@media (max-width: 480px) {
+
+    .card-body {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .cancel-btn,
+    .rate-btn {
+        width: 100%;
+        text-align: center;
+    }
+
+    .tabs {
+        overflow-x: auto;
+    }
+}

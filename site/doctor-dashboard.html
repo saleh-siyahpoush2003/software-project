@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>پنل پزشک | سامانه نوبت‌دهی درمانگاه</title>
+    <link rel="stylesheet" href="./style/font.css">
+    <link rel="stylesheet" href="./style/doctor-dashboard.css">
+</head>
+
+<body>
+
+    <div class="header">
+        <div class="header-right">
+            <div class="logo-icon">🏥</div>
+            <div class="greeting" id="greeting">
+                <h3>خوش آمدید</h3>
+                <p>پنل پزشک</p>
+            </div>
+        </div>
+        <div>
+            <button class="icon-btn" onclick="logout()">🚪<span>خروج</span></button>
+        </div>
+    </div>
+
+    <div class="stats-container">
+        <div class="stat-card">
+            <div class="stat-number" id="today-count">0</div>
+            <div class="stat-label">نوبت امروز</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="week-count">0</div>
+            <div class="stat-label">نوبت این هفته</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="total-patients">0</div>
+            <div class="stat-label">بیماران کل</div>
+        </div>
+    </div>
+
+    <div class="search-box">
+        <input type="text" id="search-patient" placeholder="🔍 جستجوی بیمار با نام یا شماره موبایل..."
+            onkeyup="searchPatients()">
+    </div>
+
+    <div class="section-title">
+        <h3>📋 نوبت‌های امروز</h3>
+        <span class="today-badge" id="today-date-badge"></span>
+    </div>
+
+    <div id="appointments-list" class="appointments-list">
+    </div>
+
+    <div id="patient-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📁 پرونده پزشکی</h3>
+                <button class="close-modal" onclick="closePatientModal()">✕</button>
+            </div>
+            <div class="modal-body" id="modal-body">
+            </div>
+        </div>
+    </div>
+    <div id="toast" class="toast"></div>
+
+    <script>
+        let currentPatient = null;
+        let allAppointments = [];
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast ' + type;
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        function getCurrentUser() {
+            const user = sessionStorage.getItem('current_user');
+            if (!user) {
+                window.location.href = 'index.html';
+                return null;
+            }
+            const userObj = JSON.parse(user);
+            if (userObj.role !== 'doctor') {
+                window.location.href = 'patient-dashboard.html';
+                return null;
+            }
+            return userObj;
+        }
+
+        function logout() {
+            sessionStorage.removeItem('current_user');
+            window.location.href = 'index.html';
+        }
+
+        // دریافت تاریخ شمسی امروز
+        function getPersianDate() {
+            return new Date().toLocaleDateString('fa-IR');
+        }
+
+        // دریافت لیست کاربران (بیماران)
+        function getAllPatients() {
+            const users = localStorage.getItem('clinic_users');
+            if (!users) return [];
+            return JSON.parse(users).filter(u => u.role === 'patient');
+        }
+
+        // دریافت لیست پزشکان
+        function getDoctors() {
+            const doctors = localStorage.getItem('clinic_doctors');
+            if (doctors) return JSON.parse(doctors);
+            const defaultDoctors = [
+                { id: 1, name: 'دکتر سارا احمدی', specialty: 'متخصص قلب و عروق', specialtyKey: 'قلب' },
+                { id: 2, name: 'دکتر محمد کریمی', specialty: 'متخصص پوست و مو', specialtyKey: 'پوست' },
+                { id: 3, name: 'دکتر رضا محمدی', specialty: 'متخصص داخلی', specialtyKey: 'داخلی' }
+            ];
+            localStorage.setItem('clinic_doctors', JSON.stringify(defaultDoctors));
+            return defaultDoctors;
+        }
+
+        // دریافت نوبت‌ها
+        function getAppointments() {
+            const appointments = localStorage.getItem('clinic_appointments');
+            return appointments ? JSON.parse(appointments) : [];
+        }
+
+        // دریافت پرونده‌های پزشکی
+        function getMedicalRecords(patientId) {
+            const records = JSON.parse(localStorage.getItem('health_records') || '{}');
+            return records[patientId] || null;
+        }
+
+        // دریافت اطلاعات بیمار بر اساس id
+        function getPatientById(patientId) {
+            const patients = getAllPatients();
+            return patients.find(p => p.id === patientId);
+        }
+
+        // نمایش نوبت‌ها
+        function renderAppointments() {
+            const user = getCurrentUser();
+            if (!user) return;
+
+            const doctors = getDoctors();
+            const doctor = doctors.find(
+                d => d.id === user.id
+            );
+            const doctorId = doctor ? doctor.id : 1;
+
+            let appointments = getAppointments();
+            // فیلتر نوبت‌های فعال (booked) برای پزشک جاری
+            const activeAppointments = appointments.filter(apt => apt.doctorId === doctorId && apt.status === 'booked');
+            allAppointments = activeAppointments;
+
+            const today = getPersianDate();
+            const todayAppointments = activeAppointments.filter(apt => apt.date === today);
+
+            // آمار
+            document.getElementById('today-count').textContent = todayAppointments.length;
+            document.getElementById('week-count').textContent = activeAppointments.length;
+
+            const uniquePatients = new Set(activeAppointments.map(apt => apt.patientId));
+            document.getElementById('total-patients').textContent = uniquePatients.size;
+            document.getElementById('today-date-badge').textContent = today;
+
+            // نمایش نوبت‌های امروز
+            const container = document.getElementById('appointments-list');
+            if (todayAppointments.length === 0) {
+                container.innerHTML = `<div class="empty-state">✨ امروز نوبتی ندارید</div>`;
+                return;
+            }
+
+            let html = '';
+            todayAppointments.forEach(apt => {
+                const patient = getPatientById(apt.patientId);
+                const patientName = patient ? patient.full_name : 'بیمار';
+                const patientMobile = patient ? patient.mobile : '---';
+                html += `
+                <div class="appointment-card">
+                    <div class="appointment-time">
+                        <div class="time">${apt.time}</div>
+                        <div class="status">رزرو شده</div>
+                    </div>
+                    <div class="appointment-info">
+                        <div class="patient-name">${patientName}</div>
+                        <div class="patient-details">📱 ${patientMobile}</div>
+                    </div>
+                    <button class="view-btn" onclick="openPatientModal(${apt.patientId}, ${apt.id})">مشاهده پرونده</button>
+                </div>
+            `;
+            });
+            container.innerHTML = html;
+        }
+
+        // جستجو در بیماران
+        function searchPatients() {
+            const query = document.getElementById('search-patient').value.trim();
+            if (!query) {
+                renderAppointments();
+                return;
+            }
+
+            const user = getCurrentUser();
+            if (!user) return;
+            const doctors = getDoctors();
+            const doctor = doctors.find(
+                d => d.id === user.id
+            );
+            const doctorId = doctor ? doctor.id : 1;
+
+            let appointments = getAppointments().filter(apt => apt.doctorId === doctorId && apt.status === 'booked');
+
+            const filtered = appointments.filter(apt => {
+                const patient = getPatientById(apt.patientId);
+                if (!patient) return false;
+                return patient.full_name.includes(query) || patient.mobile.includes(query);
+            });
+
+            const container = document.getElementById('appointments-list');
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="empty-state">❌ بیماری با این مشخصات یافت نشد</div>`;
+                return;
+            }
+
+            let html = '';
+            filtered.forEach(apt => {
+                const patient = getPatientById(apt.patientId);
+                html += `
+                <div class="appointment-card">
+                    <div class="appointment-time">
+                        <div class="time">${apt.time}</div>
+                        <div class="status">رزرو شده</div>
+                    </div>
+                    <div class="appointment-info">
+                        <div class="patient-name">${patient ? patient.full_name : 'بیمار'}</div>
+                        <div class="patient-details">📱 ${patient ? patient.mobile : '---'}</div>
+                    </div>
+                    <button class="view-btn" onclick="openPatientModal(${apt.patientId}, ${apt.id})">مشاهده پرونده</button>
+                </div>
+            `;
+            });
+            container.innerHTML = html;
+        }
+
+        // باز کردن مودال پرونده بیمار به همراه شناسه نوبت جاری
+        function openPatientModal(patientId, appointmentId) {
+            const patient = getPatientById(patientId);
+            if (!patient) return;
+            const records = getMedicalRecords(patientId);
+            const appointments = JSON.parse(localStorage.getItem('clinic_appointments') || '[]');
+            const doctors = JSON.parse(localStorage.getItem('clinic_doctors') || '[]');
+
+            const completedVisits = appointments.filter(
+                apt => apt.patientId === patientId && apt.status === 'completed'
+            );
+
+            let visitsHtml = '';
+            if (completedVisits.length > 0) {
+                completedVisits.forEach(visit => {
+                    const doctor = doctors.find(d => d.id === visit.doctorId);
+                    visitsHtml += `
+                        <div class="prescription">
+                            <div><strong>📅 ${visit.date}</strong></div>
+                            <div>👨‍⚕️ ${doctor?.name || 'پزشک'}</div>
+                            <div>🩺 تشخیص: ${visit.diagnosis || 'ثبت نشده'}</div>
+                            <div>💊 نسخه: ${visit.prescription || 'ثبت نشده'}</div>
+                        </div>
+                    `;
+                });
+            } else {
+                visitsHtml = '<div style="color:#6C757D; margin-top: 8px;">هیچ سابقه ویزیتی ثبت نشده است</div>';
+            }
+
+            document.getElementById('modal-body').innerHTML = `
+                <div class="info-row">
+                    <div class="info-label">نام بیمار:</div>
+                    <div class="info-value">${patient.full_name}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">شماره تماس:</div>
+                    <div class="info-value">${patient.mobile}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">کد ملی:</div>
+                    <div class="info-value">${patient.national_code || 'ثبت نشده'}</div>
+                </div>
+                
+                <div class="medical-history">
+                    <strong>📋 اطلاعات پزشکی پایه</strong><br><br>
+                    <div>🩸 گروه خونی: ${records?.bloodType || 'نامشخص'}</div>
+                    <div>📏 قد: ${records?.height || 'ثبت نشده'} سانتی متر</div>
+                    <div>⚖️ وزن: ${records?.weight || 'ثبت نشده'} کیلوگرم</div>
+                    <div>⚠️ حساسیت های دارویی: ${records?.allergies || 'ندارد'}</div>
+                    <div>💊 بیماری های زمینه ای: ${records?.chronicDiseases || 'ندارد'}</div>
+                    <div>🩺 شرایط خاص: ${records?.specialConditions || 'ندارد'}</div>
+                    <div>☎️ تماس اضطراری: ${records?.emergencyContact || 'ثبت نشده'}</div>
+                </div>
+                
+                <strong>📜 سابقه ویزیت‌ها</strong>
+                ${visitsHtml}
+                
+                <div class="prescription-form">
+                    <h4>✏️ ثبت نسخه و ویزیت جدید</h4>
+                    <textarea id="diag-input" rows="2" placeholder="تشخیص پزشک (مثال: سرماخوردگی شدید)..."></textarea>
+                    <textarea id="presc-input" rows="3" placeholder="اقلام نسخه و دستور مصرف (مثال: قرص استامینوفن هر 8 ساعت)..."></textarea>
+                    <button class="view-btn" style="width:100%; background: #28A745;" onclick="savePrescription(${appointmentId})">
+                        💾 ذخیره نسخه و اتمام ویزیت
+                    </button>
+                </div>
+            `;
+            document.getElementById('patient-modal').classList.add('active');
+        }
+
+        // تابع ذخیره تشخیص و نسخه در LocalStorage
+        function savePrescription(appointmentId) {
+            const diagnosis = document.getElementById('diag-input').value.trim();
+            const prescription = document.getElementById('presc-input').value.trim();
+
+            if (!diagnosis || !prescription) {
+                showToast('لطفاً فیلدهای تشخیص و نسخه را وارد کنید.', 'error');
+                return;
+            }
+
+            let appointments = JSON.parse(localStorage.getItem('clinic_appointments') || '[]');
+
+            // پیدا کردن نوبت جاری و بروزرسانی آن
+            const aptIndex = appointments.findIndex(apt => apt.id === appointmentId);
+            if (aptIndex !== -1) {
+                appointments[aptIndex].status = 'completed';
+                appointments[aptIndex].diagnosis = diagnosis;
+                appointments[aptIndex].prescription = prescription;
+
+                localStorage.setItem('clinic_appointments', JSON.stringify(appointments));
+
+                showToast('نسخه بیمار با موفقیت ثبت و نوبت نهایی شد.');
+                closePatientModal();
+                renderAppointments(); // بازنشانی لیست
+            } else {
+                showToast('خطا: نوبت یافت نشدی.', 'error');
+            }
+        }
+
+        function closePatientModal() {
+            document.getElementById('patient-modal').classList.remove('active');
+        }
+
+        // نمایش نام پزشک در هدر
+        function loadDoctorInfo() {
+            const user = getCurrentUser();
+            if (user) {
+                document.querySelector('.greeting h3').textContent = `دکتر ${user.full_name || 'پزشک'}`;
+            }
+        }
+
+        // بارگذاری اولیه
+        loadDoctorInfo();
+        renderAppointments();
+    </script>
+</body>
+
+</html>

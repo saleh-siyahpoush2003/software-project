@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>نوبت‌های من | سامانه نوبت‌دهی درمانگاه</title>
+    <link rel="stylesheet" href="./style/font.css">
+    <link rel="stylesheet" href="./style/my-turns.css">
+</head>
+
+<body>
+
+    <div class="header">
+        <button class="back-btn" onclick="goBack()">←</button>
+        <h1>📅 نوبت‌های من</h1>
+    </div>
+
+    <!-- تب‌ها -->
+    <div class="tabs">
+        <button class="tab active" data-status="all" onclick="filterAppointments('all')">همه</button>
+        <button class="tab" data-status="booked" onclick="filterAppointments('booked')">آینده</button>
+        <button class="tab" data-status="completed" onclick="filterAppointments('completed')">گذشته</button>
+        <button class="tab" data-status="canceled" onclick="filterAppointments('canceled')">لغو شده</button>
+    </div>
+
+    <div id="appointments-list" class="appointments-list">
+        <!-- نوبت‌ها به صورت داینامیک نمایش داده می‌شوند -->
+    </div>
+
+    <!-- مودال لغو نوبت -->
+    <div id="cancel-modal" class="modal">
+        <div class="modal-content">
+            <h3>❌ لغو نوبت</h3>
+            <p>آیا از لغو این نوبت مطمئن هستید؟</p>
+            <div class="modal-buttons">
+                <button class="modal-cancel" onclick="closeCancelModal()">انصراف</button>
+                <button class="modal-confirm" onclick="confirmCancel()">لغو نوبت</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- مودال امتیاز دهی -->
+    <div id="rate-modal" class="modal">
+        <div class="modal-content">
+            <h3>⭐ امتیاز شما به پزشک</h3>
+            <p id="rate-doctor-name"></p>
+            <div class="rating-stars" id="rating-stars">
+                <span class="star" data-rating="1">★</span>
+                <span class="star" data-rating="2">★</span>
+                <span class="star" data-rating="3">★</span>
+                <span class="star" data-rating="4">★</span>
+                <span class="star" data-rating="5">★</span>
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-cancel" onclick="closeRateModal()">بعداً</button>
+                <button class="modal-confirm" style="background:#FFB800;" onclick="submitRating()">ثبت امتیاز</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <button class="nav-item" onclick="location.href='patient-dashboard.html'">
+            <span class="nav-icon">🏠</span>
+            <span class="nav-label">خانه</span>
+        </button>
+        <button class="nav-item" onclick="location.href='search-doctor.html'">
+            <span class="nav-icon">🔍</span>
+            <span class="nav-label">جستجو</span>
+        </button>
+        <button class="nav-item active" onclick="location.href='my-turns.html'">
+            <span class="nav-icon">📅</span>
+            <span class="nav-label">نوبت‌ها</span>
+        </button>
+        <button class="nav-item" onclick="location.href='profile.html'">
+            <span class="nav-icon">👤</span>
+            <span class="nav-label">پروفایل</span>
+        </button>
+    </div>
+
+    <div id="toast" class="toast"></div>
+    <script src="https://cdn.jsdelivr.net/npm/jalaali-js/dist/jalaali.min.js"></script>
+    <script>
+        let toastTimeout;
+        let currentUser = null;
+        let currentFilter = 'all';
+        let pendingCancelId = null;
+        let pendingRateAppointment = null;
+        let selectedRating = 0;
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast ' + type;
+            toast.classList.add('show');
+            clearTimeout(toastTimeout);
+
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        function goBack() {
+            const user = getCurrentUser();
+            if (user && user.role === 'doctor') {
+                window.location.href = 'doctor-dashboard.html';
+            } else {
+                window.location.href = 'patient-dashboard.html';
+            }
+        }
+
+        function navigateTo(page) {
+            window.location.href = page;
+        }
+
+        function getCurrentUser() {
+            const user = sessionStorage.getItem('current_user');
+            if (!user) {
+                window.location.href = 'index.html';
+                return null;
+            }
+            return JSON.parse(user);
+        }
+
+        // دریافت لیست پزشکان
+        function getDoctors() {
+            const doctors = localStorage.getItem('clinic_doctors');
+            if (doctors) return JSON.parse(doctors);
+            const defaultDoctors = [
+                { id: 1, name: 'دکتر سارا احمدی', specialty: 'متخصص قلب و عروق', specialtyKey: 'قلب', fee: 150000, rating: 4.8, visits: 3 },
+                { id: 2, name: 'دکتر محمد کریمی', specialty: 'متخصص پوست و مو', specialtyKey: 'پوست', fee: 120000, rating: 4.6, visits: 2 },
+                { id: 3, name: 'دکتر رضا محمدی', specialty: 'متخصص داخلی', specialtyKey: 'داخلی', fee: 130000, rating: 4.7, visits: 1 },
+                { id: 4, name: 'دکتر نرگس حسینی', specialty: 'متخصص اطفال', specialtyKey: 'اطفال', fee: 110000, rating: 4.9, visits: 0 },
+                { id: 5, name: 'دکتر علی کریمی', specialty: 'متخصص ارتوپدی', specialtyKey: 'ارتوپدی', fee: 160000, rating: 4.5, visits: 0 },
+                { id: 6, name: 'دکتر زهرا مرادی', specialty: 'متخصص چشم پزشکی', specialtyKey: 'چشم', fee: 140000, rating: 4.7, visits: 1 },
+                { id: 7, name: 'دکتر مهدی رحمانی', specialty: 'روانشناس بالینی', specialtyKey: 'روانشناسی', fee: 180000, rating: 4.9, visits: 0 }
+            ];
+            localStorage.setItem('clinic_doctors', JSON.stringify(defaultDoctors));
+            return defaultDoctors;
+        }
+
+        // دریافت نوبت‌های کاربر
+        function getUserAppointments() {
+            const appointments = localStorage.getItem('clinic_appointments');
+            const allAppointments = appointments ? JSON.parse(appointments) : [];
+            return allAppointments.filter(apt => apt.patientId === currentUser.id);
+        }
+
+        // ذخیره نوبت‌ها
+        function saveAppointments(appointments) {
+            const allAppointments = JSON.parse(localStorage.getItem('clinic_appointments') || '[]');
+            const otherAppointments = allAppointments.filter(apt => apt.patientId !== currentUser.id);
+            const newAll = [...otherAppointments, ...appointments];
+            localStorage.setItem('clinic_appointments', JSON.stringify(newAll));
+        }
+
+        // لغو نوبت
+        function cancelAppointment(appointmentId) {
+            let appointments = getUserAppointments();
+            appointments = appointments.map(apt => {
+                if (apt.id === appointmentId) {
+                    return { ...apt, status: 'canceled' };
+                }
+                return apt;
+            });
+            saveAppointments(appointments);
+            showToast('✅ نوبت با موفقیت لغو شد', 'success');
+            renderAppointments();
+        }
+
+        // بررسی اینکه آیا نوبت گذشته است یا نه
+        function isPastAppointment(date, time) {
+            const now = new Date();
+
+            const [jy, jm, jd] = date.split('/').map(Number);
+            const [hour, minute] = time.split(':').map(Number);
+
+            const gDate = jalaali.toGregorian(jy, jm, jd);
+
+            const appointmentDate = new Date(
+                gDate.gy,
+                gDate.gm - 1,
+                gDate.gd,
+                hour,
+                minute
+            );
+
+            return appointmentDate < now;
+        }
+
+        // به‌روزرسانی خودکار وضعیت نوبت‌ها (گذشته شوند)
+        function updatePastAppointments() {
+            let appointments = getUserAppointments();
+            let updated = false;
+
+            appointments = appointments.map(apt => {
+                if (apt.status === 'booked' && isPastAppointment(apt.date, apt.time)) {
+                    updated = true;
+                    return { ...apt, status: 'completed' };
+                }
+                return apt;
+            });
+
+            if (updated) {
+                saveAppointments(appointments);
+            }
+        }
+
+        function parseAppointmentDate(date, time) {
+            const [jy, jm, jd] = date.split('/').map(Number);
+            const [hour, minute] = time.split(':').map(Number);
+
+            const gDate = jalaali.toGregorian(jy, jm, jd);
+
+            return new Date(
+                gDate.gy,
+                gDate.gm - 1,
+                gDate.gd,
+                hour,
+                minute
+            );
+        }
+
+        // نمایش نوبت‌ها
+        function renderAppointments() {
+            updatePastAppointments();
+
+            let appointments = getUserAppointments();
+
+            // فیلتر بر اساس وضعیت
+            if (currentFilter !== 'all') {
+                appointments = appointments.filter(apt => apt.status === currentFilter);
+            }
+
+            // مرتب‌سازی بر اساس تاریخ (نزدیک‌ترین اول)
+            // مرتب‌سازی نوبت‌ها
+            appointments.sort((a, b) => {
+                const dateA = parseAppointmentDate(a.date, a.time);
+                const dateB = parseAppointmentDate(b.date, b.time);
+
+                // نوبت‌های گذشته: جدیدترین اول
+                if (currentFilter === 'completed') {
+                    return dateB - dateA;
+                }
+
+                // بقیه: نزدیک‌ترین اول
+                return dateA - dateB;
+            });
+
+            const container = document.getElementById('appointments-list');
+            const doctors = getDoctors();
+
+            if (appointments.length === 0) {
+                let emptyMessage = '';
+                if (currentFilter === 'all') emptyMessage = 'شما هیچ نوبتی ندارید';
+                else if (currentFilter === 'booked') emptyMessage = 'نوبت آینده‌ای ندارید';
+                else if (currentFilter === 'completed') emptyMessage = 'نوبت گذشته‌ای ندارید';
+                else emptyMessage = 'نوبت لغو شده‌ای ندارید';
+
+                container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">📭</div>
+                    <p>${emptyMessage}</p>
+                    <button class="cancel-btn" style="background:#2B7A8B; color:white; border:none; margin-top:12px;" onclick="navigateTo('search-doctor.html')">
+                        + گرفتن نوبت جدید
+                    </button>
+                </div>
+            `;
+                return;
+            }
+
+            let html = '';
+            appointments.forEach(apt => {
+                const doctor = doctors.find(d => d.id === apt.doctorId);
+                const doctorName = doctor ? doctor.name : 'پزشک';
+                const specialty = doctor ? doctor.specialty : 'عمومی';
+
+                let statusText = '';
+                let statusClass = '';
+                let actionButtons = '';
+
+                if (apt.status === 'booked') {
+                    statusText = 'رزرو شده';
+                    statusClass = 'booked';
+                    actionButtons = `<button class="cancel-btn" onclick="openCancelModal(${apt.id})">لغو نوبت</button>`;
+                } else if (apt.status === 'completed') {
+                    statusText = 'انجام شده';
+                    statusClass = 'completed';
+                    actionButtons = `<button class="rate-btn" onclick="openRateModal(${apt.id}, \`${doctorName}\`)">⭐ امتیاز دهی</button>`;
+                } else {
+                    statusText = 'لغو شده';
+                    statusClass = 'canceled';
+                    actionButtons = '';
+                }
+
+                html += `
+                <div class="appointment-card">
+                    <div class="card-header">
+                        <div>
+                            <div class="doctor-name">${doctorName}</div>
+                            <div class="specialty">${specialty}</div>
+                        </div>
+                        <span class="status-badge ${statusClass}">${statusText}</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="info-item">
+                            <span class="info-icon">📅</span>
+                            <span>${apt.date}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-icon">🕐</span>
+                            <span>${apt.time}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-icon">💰</span>
+                            <span>${doctor ? doctor.fee?.toLocaleString() : '---'} تومان</span>
+                        </div>
+                        ${actionButtons}
+                    </div>
+                </div>
+            `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // فیلتر نوبت‌ها
+        function filterAppointments(status) {
+            currentFilter = status;
+
+            // به‌روزرسانی کلاس فعال تب‌ها
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelector(`.tab[data-status="${status}"]`).classList.add('active');
+
+            renderAppointments();
+        }
+
+        // مودال لغو نوبت
+        function openCancelModal(appointmentId) {
+            pendingCancelId = appointmentId;
+            document.getElementById('cancel-modal').classList.add('active');
+        }
+
+        function closeCancelModal() {
+            pendingCancelId = null;
+            document.getElementById('cancel-modal').classList.remove('active');
+        }
+
+        function confirmCancel() {
+            if (pendingCancelId) {
+                cancelAppointment(pendingCancelId);
+                closeCancelModal();
+            }
+        }
+
+        // مودال امتیاز دهی
+        function openRateModal(appointmentId, doctorName) {
+            pendingRateAppointment = { id: appointmentId, doctorName: doctorName };
+            document.getElementById('rate-doctor-name').textContent = doctorName;
+
+            // تنظیم ستاره‌ها
+            selectedRating = 0;
+            document.querySelectorAll('.star').forEach(star => {
+                star.classList.remove('active');
+            });
+
+            document.getElementById('rate-modal').classList.add('active');
+        }
+
+        function closeRateModal() {
+            pendingRateAppointment = null;
+            document.getElementById('rate-modal').classList.remove('active');
+        }
+
+        // تنظیم امتیاز ستاره‌ای
+        document.querySelectorAll('.star').forEach(star => {
+            star.addEventListener('click', function () {
+                const rating = parseInt(this.getAttribute('data-rating'));
+                selectedRating = rating;
+
+                document.querySelectorAll('.star').forEach((s, index) => {
+                    if (index < rating) {
+                        s.classList.add('active');
+                    } else {
+                        s.classList.remove('active');
+                    }
+                });
+            });
+        });
+
+        function submitRating() {
+            if (selectedRating === 0) {
+                showToast('❌ لطفاً امتیاز خود را انتخاب کنید', 'error');
+                return;
+            }
+
+            showToast(`⭐ امتیاز ${selectedRating} از ۵ برای ${pendingRateAppointment?.doctorName || 'پزشک'} ثبت شد`, 'success');
+            closeRateModal();
+        }
+
+        // بارگذاری اولیه
+        function init() {
+            currentUser = getCurrentUser();
+            if (!currentUser) return;
+
+            // اگر کاربر پزشک است، به پنل پزشک هدایت شود
+            if (currentUser.role === 'doctor') {
+                window.location.href = 'doctor-dashboard.html';
+                return;
+            }
+
+            renderAppointments();
+        }
+
+        init();
+
+        window.addEventListener('click', (e) => {
+            const cancelModal = document.getElementById('cancel-modal');
+            const rateModal = document.getElementById('rate-modal');
+
+            if (e.target === cancelModal) {
+                closeCancelModal();
+            }
+
+            if (e.target === rateModal) {
+                closeRateModal();
+            }
+        });
+    </script>
+
+</body>
+
+</html>

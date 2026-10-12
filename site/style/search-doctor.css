@@ -1,0 +1,351 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Vazirmatn', sans-serif;
+    background: #F8F9FA;
+    min-height: 100vh;
+    padding-bottom: 80px;
+}
+
+.header {
+    background: white;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.back-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+}
+
+.back-btn:hover {
+    background: #F8F9FA;
+}
+
+.header h1 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #343A40;
+}
+
+.search-bar {
+    background: white;
+    margin: 16px;
+    padding: 8px 16px;
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    border: 1px solid #E9ECEF;
+}
+
+.search-icon {
+    font-size: 20px;
+}
+
+.search-bar input {
+    flex: 1;
+    border: none;
+    padding: 12px 0;
+    font-size: 15px;
+    font-family: 'Vazirmatn', sans-serif;
+    background: transparent;
+}
+
+.search-bar input:focus {
+    outline: none;
+}
+
+.filters-section {
+    margin: 0 16px 16px;
+}
+
+.filter-title {
+    font-size: 13px;
+    color: #6C757D;
+    margin-bottom: 8px;
+}
+
+.filter-chips {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+}
+
+.chip {
+    background: white;
+    border: 1px solid #E9ECEF;
+    padding: 8px 16px;
+    border-radius: 40px;
+    font-size: 13px;
+    font-family: 'Vazirmatn', sans-serif;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+}
+
+.chip.active {
+    background: #2B7A8B;
+    color: white;
+    border-color: #2B7A8B;
+}
+
+.doctors-list {
+    margin: 0 16px;
+}
+
+.doctor-card {
+    background: white;
+    border-radius: 20px;
+    padding: 16px;
+    margin-bottom: 12px;
+    display: flex;
+    gap: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    border: 1px solid #E9ECEF;
+    transition: all 0.2s;
+}
+
+.doctor-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.doctor-avatar {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #2B7A8B20, #28A74520);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+}
+
+.doctor-info {
+    flex: 1;
+}
+
+.doctor-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: #343A40;
+}
+
+.doctor-specialty {
+    font-size: 13px;
+    color: #6C757D;
+    margin: 4px 0;
+}
+
+.doctor-rating {
+    font-size: 12px;
+    color: #FFB800;
+    margin-bottom: 4px;
+}
+
+.doctor-fee {
+    font-size: 13px;
+    color: #28A745;
+    font-weight: 500;
+}
+
+.book-btn {
+    background: #2B7A8B;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 40px;
+    font-size: 12px;
+    font-family: 'Vazirmatn', sans-serif;
+    cursor: pointer;
+    align-self: center;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.modal.active {
+    display: flex;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 32px;
+    width: 100%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    padding: 20px;
+    border-bottom: 1px solid #E9ECEF;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #343A40;
+}
+
+.close-modal {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.time-slots {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin: 16px 0;
+}
+
+.time-slot {
+    background: #F8F9FA;
+    border: 1px solid #E9ECEF;
+    padding: 10px;
+    text-align: center;
+    border-radius: 12px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.time-slot.selected {
+    background: #2B7A8B;
+    color: white;
+    border-color: #2B7A8B;
+}
+
+.date-picker {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #E9ECEF;
+    border-radius: 16px;
+    font-family: 'Vazirmatn', sans-serif;
+    margin: 16px 0;
+}
+
+.confirm-btn {
+    width: 100%;
+    background: #28A745;
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 16px;
+    font-size: 16px;
+    font-weight: 600;
+    font-family: 'Vazirmatn', sans-serif;
+    cursor: pointer;
+    margin-top: 16px;
+}
+
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    display: flex;
+    justify-content: space-around;
+    padding: 12px 20px;
+    border-top: 1px solid #E9ECEF;
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    background: none;
+    border: none;
+    font-family: 'Vazirmatn', sans-serif;
+    cursor: pointer;
+    padding: 4px 12px;
+    border-radius: 20px;
+}
+
+.nav-item .nav-icon {
+    font-size: 22px;
+}
+
+.nav-item .nav-label {
+    font-size: 11px;
+    color: #6C757D;
+}
+
+.nav-item.active .nav-icon,
+.nav-item.active .nav-label {
+    color: #2B7A8B;
+}
+
+.toast {
+    position: fixed;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #343A40;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 40px;
+    font-size: 13px;
+    z-index: 300;
+    display: none;
+}
+
+.toast.success {
+    background: #28A745;
+}
+
+.toast.error {
+    background: #DC3545;
+}
+
+.empty-doctors {
+    text-align: center;
+    padding: 60px 20px;
+    color: #6C757D;
+}
+
+.empty-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}

@@ -1,0 +1,353 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Vazirmatn', sans-serif;
+    background: #F8F9FA;
+    min-height: 100vh;
+    padding-bottom: 80px;
+}
+
+/* نوار بالایی */
+.header {
+    background: white;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.back-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+}
+
+.back-btn:hover {
+    background: #F8F9FA;
+}
+
+.header h1 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #343A40;
+}
+
+/* تب‌ها */
+.tabs {
+    display: flex;
+    background: white;
+    margin: 16px;
+    border-radius: 60px;
+    padding: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.tab {
+    flex: 1;
+    text-align: center;
+    padding: 10px 0;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'Vazirmatn', sans-serif;
+    background: none;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #6C757D;
+}
+
+.tab.active {
+    background: #2B7A8B;
+    color: white;
+}
+
+/* محتوای تب‌ها */
+.tab-content {
+    display: none;
+    padding: 0 16px;
+}
+
+.tab-content.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* کارت‌ها */
+.info-card {
+    background: white;
+    border-radius: 24px;
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    border: 1px solid #E9ECEF;
+}
+
+.card-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #2B7A8B;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #2B7A8B;
+    display: inline-block;
+}
+
+.info-row {
+    display: flex;
+    margin-bottom: 14px;
+    padding: 6px 0;
+    border-bottom: 1px solid #E9ECEF;
+}
+
+.info-label {
+    width: 110px;
+    font-weight: 600;
+    color: #6C757D;
+}
+
+.info-value {
+    flex: 1;
+    color: #343A40;
+}
+
+/* بخش ویرایش */
+.edit-btn {
+    background: #2B7A8B;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 40px;
+    font-size: 12px;
+    font-family: 'Vazirmatn', sans-serif;
+    cursor: pointer;
+    margin-top: 12px;
+}
+
+.save-btn {
+    background: #28A745;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 40px;
+    font-size: 12px;
+    font-family: 'Vazirmatn', sans-serif;
+    cursor: pointer;
+}
+
+.cancel-btn {
+    background: #6C757D;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 40px;
+    font-size: 12px;
+    font-family: 'Vazirmatn', sans-serif;
+    cursor: pointer;
+}
+
+.edit-group {
+    margin-bottom: 12px;
+}
+
+.edit-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: #6C757D;
+    margin-bottom: 6px;
+}
+
+.edit-group input,
+.edit-group textarea,
+.edit-group select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #E9ECEF;
+    border-radius: 12px;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 14px;
+}
+
+.edit-group input:focus,
+.edit-group textarea:focus {
+    outline: none;
+    border-color: #2B7A8B;
+}
+
+/* سابقه ویزیت‌ها */
+.visit-item {
+    background: #F8F9FA;
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 12px;
+    border-right: 4px solid #2B7A8B;
+}
+
+.visit-date {
+    font-size: 13px;
+    color: #2B7A8B;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.visit-doctor {
+    font-size: 15px;
+    font-weight: 600;
+    color: #343A40;
+    margin-bottom: 8px;
+}
+
+.visit-diagnosis {
+    font-size: 13px;
+    color: #6C757D;
+    margin-bottom: 8px;
+}
+
+.visit-prescription {
+    background: white;
+    padding: 10px;
+    border-radius: 12px;
+    margin-top: 8px;
+    font-size: 13px;
+}
+
+/* وضعیت سلامت */
+.health-status {
+    display: flex;
+    gap: 12px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+}
+
+.status-badge {
+    background: #F0F9FA;
+    color: #2B7A8B;
+    padding: 6px 14px;
+    border-radius: 40px;
+    font-size: 12px;
+}
+
+/* دکمه دانلود */
+.download-btn {
+    background: white;
+    border: 1px solid #2B7A8B;
+    color: #2B7A8B;
+    padding: 12px;
+    border-radius: 24px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: 'Vazirmatn', sans-serif;
+    cursor: pointer;
+    width: 100%;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.download-btn:hover {
+    background: #2B7A8B;
+    color: white;
+}
+
+/* نوار پایینی */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    display: flex;
+    justify-content: space-around;
+    padding: 12px 20px;
+    border-top: 1px solid #E9ECEF;
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    background: none;
+    border: none;
+    font-family: 'Vazirmatn', sans-serif;
+    cursor: pointer;
+    padding: 4px 12px;
+    border-radius: 20px;
+}
+
+.nav-item .nav-icon {
+    font-size: 22px;
+}
+
+.nav-item .nav-label {
+    font-size: 11px;
+    color: #6C757D;
+}
+
+.nav-item.active .nav-icon,
+.nav-item.active .nav-label {
+    color: #2B7A8B;
+}
+
+/* toast */
+.toast {
+    position: fixed;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #343A40;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 40px;
+    font-size: 13px;
+    z-index: 300;
+    display: none;
+}
+
+.toast.success {
+    background: #28A745;
+}
+
+.toast.error {
+    background: #DC3545;
+}
+
+/* دکمه افزودن */
+.add-btn {
+    background: #28A745;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 40px;
+    font-size: 13px;
+    font-family: 'Vazirmatn', sans-serif;
+    cursor: pointer;
+    margin-top: 12px;
+    width: 100%;
+}

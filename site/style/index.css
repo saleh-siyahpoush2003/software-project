@@ -1,0 +1,284 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Vazirmatn', sans-serif;
+    background: linear-gradient(135deg, #2B7A8B 0%, #1a5a68 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+/* کارت اصلی */
+.auth-container {
+    background: #FFFFFF;
+    border-radius: 32px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    width: 100%;
+    max-width: 480px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+/* هدر با لوگو */
+.auth-header {
+    background: #F8F9FA;
+    padding: 32px 24px 24px;
+    text-align: center;
+    border-bottom: 1px solid #E9ECEF;
+}
+
+.logo {
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(135deg, #2B7A8B 0%, #28A745 100%);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+    font-size: 32px;
+    box-shadow: 0 4px 12px rgba(43, 122, 139, 0.3);
+}
+
+.auth-header h1 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #343A40;
+    margin-bottom: 8px;
+}
+
+.auth-header p {
+    font-size: 14px;
+    color: #6C757D;
+}
+
+/* تب‌های ورود و ثبت‌نام */
+.tabs {
+    display: flex;
+    border-bottom: 2px solid #E9ECEF;
+    background: #FFFFFF;
+}
+
+.tab {
+    flex: 1;
+    text-align: center;
+    padding: 16px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #6C757D;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: transparent;
+    border: none;
+    font-family: 'Vazirmatn', sans-serif;
+}
+
+#register-role {
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 16px;
+    border: 1.5px solid #E9ECEF;
+    font-family: 'Vazirmatn', sans-serif;
+    background: #FFFFFF;
+    outline: none;
+}
+
+#register-role:focus {
+    border-color: #2B7A8B;
+    box-shadow: 0 0 0 3px rgba(43, 122, 139, 0.1);
+}
+
+#doctor-fields {
+    display: none;
+    margin-top: 20px;
+}
+
+.tab.active {
+    color: #2B7A8B;
+    border-bottom: 2px solid #2B7A8B;
+    margin-bottom: -2px;
+}
+
+/* فرم‌ها */
+.form-panel {
+    padding: 32px 24px;
+    display: none;
+}
+
+.form-panel.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.input-group {
+    margin-bottom: 20px;
+}
+
+.input-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: #343A40;
+    margin-bottom: 8px;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 14px 16px;
+    font-size: 15px;
+    font-family: 'Vazirmatn', sans-serif;
+    border: 1.5px solid #E9ECEF;
+    border-radius: 16px;
+    transition: all 0.2s ease;
+    background: #FFFFFF;
+}
+
+.input-group input:focus {
+    outline: none;
+    border-color: #2B7A8B;
+    box-shadow: 0 0 0 3px rgba(43, 122, 139, 0.1);
+}
+
+/* استایل اختصاصی فیلدهای عددی/انگلیسی برای تجربه کاربری بهتر */
+.ltr-input {
+    direction: ltr !important;
+    text-align: right;
+}
+
+.ltr-input::placeholder {
+    direction: rtl;
+    text-align: right;
+}
+
+/* دکمه اصلی */
+.btn-primary {
+    width: 100%;
+    padding: 14px;
+    background: #2B7A8B;
+    color: white;
+    border: none;
+    border-radius: 16px;
+    font-size: 16px;
+    font-weight: 600;
+    font-family: 'Vazirmatn', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 8px;
+}
+
+.btn-primary:hover {
+    background: #1a5a68;
+    transform: translateY(-1px);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}
+
+/* لینک فراموشی رمز */
+.forgot-link {
+    text-align: center;
+    margin-top: 16px;
+}
+
+.forgot-link a {
+    color: #6C757D;
+    font-size: 13px;
+    text-decoration: none;
+}
+
+.forgot-link a:hover {
+    color: #2B7A8B;
+}
+
+/* پیام خطا و موفقیت */
+.message {
+    padding: 12px;
+    border-radius: 12px;
+    font-size: 13px;
+    margin-bottom: 20px;
+    display: none;
+}
+
+.message.error {
+    background: #FEF3F2;
+    color: #DC3545;
+    border: 1px solid #FEE2E2;
+    display: block;
+}
+
+.message.success {
+    background: #F0FDF4;
+    color: #28A745;
+    border: 1px solid #DCFCE7;
+    display: block;
+}
+
+/* فوتر */
+.auth-footer {
+    background: #F8F9FA;
+    padding: 16px 24px;
+    text-align: center;
+    border-top: 1px solid #E9ECEF;
+}
+
+.auth-footer p {
+    font-size: 11px;
+    color: #ADB5BD;
+}
+
+.password-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-container input {
+    width: 100%;
+    padding: 14px 44px 14px 16px;
+    /* اصلاح پدینگ سمت چپ برای آیکون چشم در حالت RTL */
+}
+
+.toggle-password {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    color: #6C757D;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* responsive */
+@media (max-width: 480px) {
+    .auth-container {
+        border-radius: 24px;
+    }
+
+    .form-panel {
+        padding: 24px 20px;
+    }
+}

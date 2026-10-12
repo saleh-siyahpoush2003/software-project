@@ -1,0 +1,321 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* تعریف متغیرهای رنگی برای پشتیبانی کامل از حالت شب */
+:root {
+    --bg-color: #F8F9FA;
+    --card-bg: #FFFFFF;
+    --text-color: #343A40;
+    --border-color: #E9ECEF;
+    --input-bg: #F8F9FA;
+    --base-font-size: 14px;
+}
+
+/* اعمال مقادیر جدید زمان فعال شدن حالت شب */
+body.dark-mode {
+    --bg-color: #121214;
+    --card-bg: #1A1A1E;
+    --text-color: #E2E8F0;
+    --border-color: #2D2D34;
+    --input-bg: #26262B;
+}
+
+body.large-font {
+    --base-font-size: 17px;
+}
+
+body {
+    font-family: 'Vazirmatn', sans-serif;
+    background: var(--bg-color);
+    color: var(--text-color);
+    font-size: var(--base-font-size);
+    min-height: 100vh;
+    padding-bottom: 80px;
+    transition: background 0.3s, color 0.3s;
+}
+
+.header {
+    background: var(--card-bg);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.back-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-color);
+}
+
+.header h1 {
+    font-size: calc(var(--base-font-size) + 4px);
+    font-weight: 700;
+    color: var(--text-color);
+}
+
+.avatar-section {
+    background: var(--card-bg);
+    margin: 20px 16px;
+    padding: 24px;
+    border-radius: 32px;
+    text-align: center;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--border-color);
+}
+
+.avatar {
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(135deg, #2B7A8B 0%, #28A745 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    margin: 0 auto 16px;
+    box-shadow: 0 4px 12px rgba(43, 122, 139, 0.2);
+}
+
+.role-badge {
+    display: inline-block;
+    background: #F0F9FA;
+    color: #2B7A8B;
+    padding: 4px 16px;
+    border-radius: 40px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.info-card {
+    background: var(--card-bg);
+    margin: 0 16px 16px;
+    padding: 20px;
+    border-radius: 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--border-color);
+}
+
+.info-title {
+    font-size: calc(var(--base-font-size) + 2px);
+    font-weight: 700;
+    color: var(--text-color);
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #2B7A8B;
+    display: inline-block;
+}
+
+.info-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.info-label {
+    width: 120px;
+    font-weight: 600;
+    color: #6C757D;
+}
+
+.info-value {
+    flex: 1;
+    color: var(--text-color);
+}
+
+.info-value input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: var(--base-font-size);
+    background: var(--input-bg);
+    color: var(--text-color);
+}
+
+.info-value input:focus {
+    outline: none;
+    border-color: #2B7A8B;
+}
+
+.button-group {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+    justify-content: flex-end;
+}
+
+.edit-btn,
+.save-btn,
+.cancel-btn {
+    padding: 10px 20px;
+    border-radius: 40px;
+    font-size: var(--base-font-size);
+    font-family: 'Vazirmatn', sans-serif;
+    cursor: pointer;
+    border: none;
+    font-weight: bold;
+}
+
+.edit-btn {
+    background: #2B7A8B;
+    color: white;
+}
+
+.save-btn {
+    background: #28A745;
+    color: white;
+}
+
+.cancel-btn {
+    background: #6C757D;
+    color: white;
+}
+
+.settings-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.settings-label {
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.settings-desc {
+    font-size: 11px;
+    color: #6C757D;
+    margin-top: 4px;
+}
+
+.toggle-switch {
+    width: 50px;
+    height: 26px;
+    background: #E9ECEF;
+    border-radius: 40px;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.toggle-switch.active {
+    background: #28A745;
+}
+
+.toggle-circle {
+    width: 22px;
+    height: 22px;
+    background: white;
+    border-radius: 50%;
+    position: absolute;
+    top: 2px;
+    left: 4px;
+    transition: all 0.2s;
+}
+
+.toggle-switch.active .toggle-circle {
+    left: 24px;
+}
+
+.logout-btn {
+    background: var(--card-bg);
+    color: #DC3545;
+    border: 1px solid #FEE2E2;
+    padding: 14px;
+    border-radius: 24px;
+    font-size: 16px;
+    font-weight: 600;
+    font-family: 'Vazirmatn', sans-serif;
+    cursor: pointer;
+    width: calc(100% - 32px);
+    margin: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--card-bg);
+    display: flex;
+    justify-content: space-around;
+    padding: 12px 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: none;
+    border: none;
+    font-family: 'Vazirmatn', sans-serif;
+    cursor: pointer;
+}
+
+.nav-item .nav-label {
+    font-size: 11px;
+    color: #6C757D;
+}
+
+.nav-item.active .nav-icon,
+.nav-item.active .nav-label {
+    color: #2B7A8B;
+}
+
+/* اصلاح انیمیشن و استایل ترنزیشن پیام Toast */
+.toast {
+    position: fixed;
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%) translateY(30px);
+    background: #343A40;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 40px;
+    font-size: 13px;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.toast.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+}
+
+.toast.success {
+    background: #28A745;
+}
+
+.toast.error {
+    background: #DC3545;
+}

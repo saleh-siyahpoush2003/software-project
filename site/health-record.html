@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>پرونده سلامت | سامانه نوبت‌دهی درمانگاه</title>
+    <link rel="stylesheet" href="./style/font.css">
+    <link rel="stylesheet" href="./style/health-record.css">
+</head>
+
+<body>
+    <div class="header">
+        <button class="back-btn" onclick="goBack()">←</button>
+        <h1>📋 پرونده سلامت</h1>
+    </div>
+    <!-- تب‌ها -->
+    <div class="tabs">
+        <button class="tab active" data-tab="overview">📊 خلاصه</button>
+        <button class="tab" data-tab="info">📝 اطلاعات پایه</button>
+        <button class="tab" data-tab="visits">📅 سابقه ویزیت</button>
+        <button class="tab" data-tab="prescriptions">💊 نسخه‌ها</button>
+    </div>
+    <!-- تب خلاصه -->
+    <div class="tab-content active" id="tab-overview">
+        <div class="info-card">
+            <div class="card-title">🩺 وضعیت کلی سلامت</div>
+            <div class="health-status" id="health-status">
+                <!-- داینامیک -->
+            </div>
+        </div>
+        <div class="info-card">
+            <div class="card-title">📊 آمار پزشکی</div>
+            <div class="info-row">
+                <div class="info-label">تعداد ویزیت‌ها:</div>
+                <div class="info-value" id="total-visits">0</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">آخرین ویزیت:</div>
+                <div class="info-value" id="last-visit">---</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">بیماری‌های زمینه‌ای:</div>
+                <div class="info-value" id="chronic-diseases-summary">---</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">حساسیت‌های دارویی:</div>
+                <div class="info-value" id="allergies-summary">---</div>
+            </div>
+        </div>
+        <div class="info-card">
+            <div class="card-title">⚠️ توصیه‌های پزشکی</div>
+            <div id="recommendations">
+                <div class="visit-item">
+                    <div class="visit-date">توصیه عمومی</div>
+                    <div>معاینات دوره‌ای سالانه را فراموش نکنید.</div>
+                    <div style="margin-top:8px;">در صورت داشتن علائم غیرعادی، سریعاً به پزشک مراجعه کنید.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- تب اطلاعات پایه -->
+    <div class="tab-content" id="tab-info">
+        <div class="info-card">
+            <div class="card-title">👤 اطلاعات شخصی</div>
+            <div id="personal-info-display">
+                <!-- نمایش اطلاعات -->
+            </div>
+            <div id="personal-info-edit" style="display:none;">
+                <!-- فرم ویرایش -->
+            </div>
+            <button class="edit-btn" id="edit-personal-btn" onclick="enablePersonalEdit()">✏️ ویرایش اطلاعات
+                پایه</button>
+        </div>
+        <div class="info-card">
+            <div class="card-title">🩺 اطلاعات پزشکی پایه</div>
+            <div id="medical-info-display">
+                <!-- نمایش اطلاعات پزشکی -->
+            </div>
+            <div id="medical-info-edit" style="display:none;">
+                <!-- فرم ویرایش -->
+            </div>
+            <button class="edit-btn" id="edit-medical-btn" onclick="enableMedicalEdit()">✏️ ویرایش اطلاعات
+                پزشکی</button>
+        </div>
+    </div>
+    <!-- تب سابقه ویزیت -->
+    <div class="tab-content" id="tab-visits">
+        <div id="visits-list">
+            <!-- لیست ویزیت‌ها -->
+        </div>
+    </div>
+    <!-- تب نسخه‌ها -->
+    <div class="tab-content" id="tab-prescriptions">
+        <div id="prescriptions-list">
+            <!-- لیست نسخه‌ها -->
+        </div>
+    </div>
+    <!-- دکمه دانلود PDF -->
+    <div style="margin: 0 16px 80px;">
+        <button class="download-btn" onclick="downloadHealthRecord()">
+            📥 دانلود پرونده سلامت (شبیه سازی)
+        </button>
+    </div>
+    <div class="bottom-nav">
+        <button class="nav-item" onclick="location.href='patient-dashboard.html'">
+            <span class="nav-icon">🏠</span>
+            <span class="nav-label">خانه</span>
+        </button>
+        <button class="nav-item" onclick="location.href='search-doctor.html'">
+            <span class="nav-icon">🔍</span>
+            <span class="nav-label">جستجو</span>
+        </button>
+        <button class="nav-item" onclick="location.href='my-turns.html'">
+            <span class="nav-icon">📅</span>
+            <span class="nav-label">نوبت‌ها</span>
+        </button>
+        <button class="nav-item active" onclick="location.href='health-record.html'">
+            <span class="nav-icon">📋</span>
+            <span class="nav-label">پرونده</span>
+        </button>
+        <button class="nav-item" onclick="location.href='profile.html'">
+            <span class="nav-icon">👤</span>
+            <span class="nav-label">پروفایل</span>
+        </button>
+    </div>
+    <div id="toast" class="toast"></div>
+    <script>
+        let currentUser = null;
+        let isPersonalEditing = false;
+        let isMedicalEditing = false;
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast ' + type;
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+        function goBack() {
+            window.location.href = 'patient-dashboard.html';
+        }
+        function getCurrentUser() {
+            const user = sessionStorage.getItem('current_user');
+            if (!user) {
+                window.location.href = 'index.html';
+                return null;
+            }
+            return JSON.parse(user);
+        }
+        // ========== مدیریت پرونده سلامت در localStorage ==========
+        function getDefaultHealthRecord(userId, userName) {
+            return {
+                userId: userId,
+                bloodType: 'O+',
+                height: 175,
+                weight: 72,
+                allergies: 'پنی‌سیلین، گرده گل',
+                chronicDiseases: 'فشار خون خفیف',
+                specialConditions: 'ندارد',
+                emergencyContact: '۰۹۱۲۳۴۵۶۷۸۹',
+                emergencyRelation: 'همسر'
+            };
+        }
+        function getHealthRecord() {
+            let records = localStorage.getItem('health_records');
+            if (!records) {
+                records = {};
+                localStorage.setItem('health_records', JSON.stringify(records));
+            } else {
+                records = JSON.parse(records);
+            }
+
+            if (!records[currentUser.id]) {
+                records[currentUser.id] = getDefaultHealthRecord(currentUser.id, currentUser.full_name);
+                localStorage.setItem('health_records', JSON.stringify(records));
+            }
+            return records[currentUser.id];
+        }
+        function saveHealthRecord(record) {
+            let records = JSON.parse(localStorage.getItem('health_records') || '{}');
+            records[currentUser.id] = record;
+            localStorage.setItem('health_records', JSON.stringify(records));
+        }
+        // دریافت سابقه ویزیت از نوبت‌های تکمیل شده
+        function getVisitHistory() {
+            const appointments = JSON.parse(localStorage.getItem('clinic_appointments') || '[]');
+            const userAppointments = appointments.filter(apt => apt.patientId === currentUser.id && apt.status === 'completed' || apt.status === 'booked');
+            const doctors = JSON.parse(localStorage.getItem('clinic_doctors') || '[]');
+            return userAppointments.map(apt => {
+                const doctor = doctors.find(d => d.id === apt.doctorId);
+                return {
+                    id: apt.id,
+                    date: apt.date,
+                    time: apt.time,
+                    doctorName: doctor ? doctor.name : 'پزشک',
+                    doctorSpecialty: doctor ? doctor.specialty : 'عمومی',
+                    diagnosis: apt.diagnosis || 'در حال بررسی',
+                    prescription: apt.prescription || 'نسخه ثبت نشده است'
+                };
+            });
+        }
+        // ========== تب خلاصه ==========
+        function renderOverview() {
+            const record = getHealthRecord();
+            const visits = getVisitHistory();
+            // وضعیت سلامت
+            const healthStatusDiv = document.getElementById('health-status');
+            let statusHtml = `<span class="status-badge">🩸 گروه خونی: ${record.bloodType}</span>`;
+            if (record.chronicDiseases && record.chronicDiseases !== 'ندارد') {
+                statusHtml += `<span class="status-badge">⚠️ ${record.chronicDiseases}</span>`;
+            }
+            if (record.allergies && record.allergies !== 'ندارد') {
+                statusHtml += `<span class="status-badge">🔴 حساسیت: ${record.allergies}</span>`;
+            }
+            healthStatusDiv.innerHTML = statusHtml;
+            // آمار
+            document.getElementById('total-visits').textContent = visits.length;
+            if (visits.length > 0) {
+                document.getElementById('last-visit').textContent = visits[visits.length - 1].date;
+            }
+            document.getElementById('chronic-diseases-summary').textContent = record.chronicDiseases || 'ندارد';
+            document.getElementById('allergies-summary').textContent = record.allergies || 'ندارد';
+        }
+        // ========== تب اطلاعات پایه ==========
+        function renderPersonalInfo() {
+            const record = getHealthRecord();
+            const displayDiv = document.getElementById('personal-info-display');
+            displayDiv.innerHTML = `
+            <div class="info-row">
+                <div class="info-label">نام و نام خانوادگی:</div>
+                <div class="info-value">${currentUser.full_name || '---'}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">شماره موبایل:</div>
+                <div class="info-value">${currentUser.mobile || '---'}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">کد ملی:</div>
+                <div class="info-value">${currentUser.national_code || 'ثبت نشده'}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">ایمیل:</div>
+                <div class="info-value">${currentUser.email || 'ثبت نشده'}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">تاریخ تولد:</div>
+                <div class="info-value">${currentUser.birthdate || 'ثبت نشده'}</div>
+            </div>
+        `;
+        }
+        function enablePersonalEdit() {
+            if (isPersonalEditing) return;
+            isPersonalEditing = true;
+            const record = getHealthRecord();
+            const editDiv = document.getElementById('personal-info-edit');
+            const displayDiv = document.getElementById('personal-info-display');
+            editDiv.innerHTML = `
+            <div class="edit-group">
+                <label>نام و نام خانوادگی</label>
+                <input type="text" id="edit-name" value="${currentUser.full_name || ''}">
+            </div>
+            <div class="edit-group">
+                <label>کد ملی</label>
+                <input type="text" id="edit-national" value="${currentUser.national_code || ''}">
+            </div>
+            <div class="edit-group">
+                <label>ایمیل</label>
+                <input type="email" id="edit-email" value="${currentUser.email || ''}">
+            </div>
+            <div class="edit-group">
+                <label>تاریخ تولد</label>
+                <input type="date" id="edit-birthdate" value="${currentUser.birthdate || ''}">
+            </div>
+            <div class="edit-group">
+                <button class="save-btn" onclick="savePersonalInfo()">✅ ذخیره</button>
+                <button class="cancel-btn" onclick="cancelPersonalEdit()">✖️ انصراف</button>
+            </div>
+        `;
+            displayDiv.style.display = 'none';
+            editDiv.style.display = 'block';
+            document.getElementById('edit-personal-btn').style.display = 'none';
+        }
+        function cancelPersonalEdit() {
+            isPersonalEditing = false;
+            document.getElementById('personal-info-display').style.display = 'block';
+            document.getElementById('personal-info-edit').style.display = 'none';
+            document.getElementById('edit-personal-btn').style.display = 'inline-block';
+            renderPersonalInfo();
+        }
+        function savePersonalInfo() {
+            const newName = document.getElementById('edit-name').value.trim();
+            const newNational = document.getElementById('edit-national').value.trim();
+            const newEmail = document.getElementById('edit-email').value.trim();
+            const newBirthdate = document.getElementById('edit-birthdate').value;
+            if (!newName) {
+                showToast('❌ نام نمی‌تواند خالی باشد', 'error');
+                return;
+            }
+            if (newNational && !/^\d{10}$/.test(newNational)) {
+                showToast('❌ کد ملی باید ۱۰ رقم باشد', 'error');
+                return;
+            }
+
+            if (newEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) {
+                showToast('❌ فرمت ایمیل صحیح نیست', 'error');
+                return;
+            }
+            currentUser.full_name = newName;
+            currentUser.national_code = newNational;
+            currentUser.email = newEmail;
+            currentUser.birthdate = newBirthdate;
+            // به‌روزرسانی در localStorage
+            let users = JSON.parse(localStorage.getItem('clinic_users') || '[]');
+            const index =
+                users.findIndex(
+                    u => u.id === currentUser.id
+                );
+
+            if (index === -1) {
+                showToast(
+                    '❌ خطا در ذخیره اطلاعات کاربر',
+                    'error'
+                );
+                return;
+            }
+
+            users[index] = currentUser;
+
+            localStorage.setItem(
+                'clinic_users',
+                JSON.stringify(users)
+            );
+            sessionStorage.setItem('current_user', JSON.stringify(currentUser));
+            showToast('✅ اطلاعات شخصی به‌روزرسانی شد', 'success');
+            cancelPersonalEdit();
+        }
+        function renderMedicalInfo() {
+            const record = getHealthRecord();
+            const displayDiv = document.getElementById('medical-info-display');
+
+            displayDiv.innerHTML = `
+            <div class="info-row">
+                <div class="info-label">گروه خونی:</div>
+                <div class="info-value">${record.bloodType || 'نامشخص'}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">قد (سانتی‌متر):</div>
+                <div class="info-value">${record.height || '---'}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">وزن (کیلوگرم):</div>
+                <div class="info-value">${record.weight || '---'}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">حساسیت‌های دارویی:</div>
+                <div class="info-value">${record.allergies || 'ندارد'}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">بیماری‌های زمینه‌ای:</div>
+                <div class="info-value">${record.chronicDiseases || 'ندارد'}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">شرایط خاص:</div>
+                <div class="info-value">${record.specialConditions || 'ندارد'}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">تماس اضطراری:</div>
+                <div class="info-value">${record.emergencyContact || 'ثبت نشده'} (${record.emergencyRelation || ''})</div>
+            </div>
+        `;
+        }
+        function enableMedicalEdit() {
+            if (isMedicalEditing) return;
+            isMedicalEditing = true;
+            const record = getHealthRecord();
+            const editDiv = document.getElementById('medical-info-edit');
+            const displayDiv = document.getElementById('medical-info-display');
+            editDiv.innerHTML = `
+            <div class="edit-group">
+                <label>گروه خونی</label>
+                <select id="edit-bloodtype">
+                    <option value="A+" ${record.bloodType === 'A+' ? 'selected' : ''}>A+</option>
+                    <option value="A-" ${record.bloodType === 'A-' ? 'selected' : ''}>A-</option>
+                    <option value="B+" ${record.bloodType === 'B+' ? 'selected' : ''}>B+</option>
+                    <option value="B-" ${record.bloodType === 'B-' ? 'selected' : ''}>B-</option>
+                    <option value="AB+" ${record.bloodType === 'AB+' ? 'selected' : ''}>AB+</option>
+                    <option value="AB-" ${record.bloodType === 'AB-' ? 'selected' : ''}>AB-</option>
+                    <option value="O+" ${record.bloodType === 'O+' ? 'selected' : ''}>O+</option>
+                    <option value="O-" ${record.bloodType === 'O-' ? 'selected' : ''}>O-</option>
+                </select>
+            </div>
+            <div class="edit-group">
+                <label>قد (سانتی‌متر)</label>
+                <input type="number" id="edit-height" value="${record.height || ''}">
+            </div>
+            <div class="edit-group">
+                <label>وزن (کیلوگرم)</label>
+                <input type="number" id="edit-weight" value="${record.weight || ''}">
+            </div>
+            <div class="edit-group">
+                <label>حساسیت‌های دارویی</label>
+                <textarea id="edit-allergies" rows="2" placeholder="مثال: پنی‌سیلین، آسپرین، ...">${record.allergies || ''}</textarea>
+            </div>
+            <div class="edit-group">
+                <label>بیماری‌های زمینه‌ای</label>
+                <textarea id="edit-chronic" rows="2" placeholder="مثال: فشار خون، دیابت، ...">${record.chronicDiseases || ''}</textarea>
+            </div>
+            <div class="edit-group">
+                <label>شرایط خاص</label>
+                <textarea id="edit-special" rows="2" placeholder="بارداری، ناتوانی، ...">${record.specialConditions || ''}</textarea>
+            </div>
+            <div class="edit-group">
+                <label>شماره تماس اضطراری</label>
+                <input type="tel" id="edit-emergency" value="${record.emergencyContact || ''}">
+            </div>
+            <div class="edit-group">
+                <label>مناسبت با فرد اضطراری</label>
+                <input type="text" id="edit-relation" value="${record.emergencyRelation || ''}" placeholder="مثال: همسر، پدر، مادر">
+            </div>
+            <div class="edit-group">
+                <button class="save-btn" onclick="saveMedicalInfo()">✅ ذخیره</button>
+                <button class="cancel-btn" onclick="cancelMedicalEdit()">✖️ انصراف</button>
+            </div>
+        `;
+
+            displayDiv.style.display = 'none';
+            editDiv.style.display = 'block';
+            document.getElementById('edit-medical-btn').style.display = 'none';
+        }
+        function cancelMedicalEdit() {
+            isMedicalEditing = false;
+            document.getElementById('medical-info-display').style.display = 'block';
+            document.getElementById('medical-info-edit').style.display = 'none';
+            document.getElementById('edit-medical-btn').style.display = 'inline-block';
+            renderMedicalInfo();
+        }
+        function saveMedicalInfo() {
+            const record = getHealthRecord();
+            const height = Number(
+                document.getElementById('edit-height').value
+            );
+
+            const weight = Number(
+                document.getElementById('edit-weight').value
+            );
+            if (height && (height < 50 || height > 250)) {
+                showToast(
+                    '❌ قد باید بین ۵۰ تا ۲۵۰ سانتی‌متر باشد',
+                    'error'
+                );
+                return;
+            }
+
+            if (weight && (weight < 2 || weight > 300)) {
+                showToast(
+                    '❌ وزن وارد شده معتبر نیست',
+                    'error'
+                );
+                return;
+            }
+            record.bloodType = document.getElementById('edit-bloodtype').value;
+            record.height = document.getElementById('edit-height').value;
+            record.weight = document.getElementById('edit-weight').value;
+            record.allergies = document.getElementById('edit-allergies').value;
+            record.chronicDiseases = document.getElementById('edit-chronic').value;
+            record.specialConditions = document.getElementById('edit-special').value;
+            record.emergencyContact = document.getElementById('edit-emergency').value;
+            record.emergencyRelation = document.getElementById('edit-relation').value;
+            saveHealthRecord(record);
+            showToast('✅ اطلاعات پزشکی به‌روزرسانی شد', 'success');
+            cancelMedicalEdit();
+            renderOverview();
+        }
+        // ========== سابقه ویزیت ==========
+        function renderVisits() {
+            const visits = getVisitHistory();
+            const container = document.getElementById('visits-list');
+            if (visits.length === 0) {
+                container.innerHTML = `
+                <div class="info-card" style="text-align:center;">
+                    <div style="font-size:48px; margin-bottom:12px;">📭</div>
+                    <p>هنوز ویزیتی ثبت نشده است</p>
+                    <button class="edit-btn" onclick="location.href='search-doctor.html'" style="margin-top:12px;">+ گرفتن نوبت</button>
+                </div>
+            `;
+                return;
+            }
+            let html = '';
+            [...visits].reverse().forEach(visit => {
+                html += `
+                <div class="visit-item">
+                    <div class="visit-date">📅 ${visit.date} | 🕐 ${visit.time}</div>
+                    <div class="visit-doctor">👨‍⚕️ ${visit.doctorName} - ${visit.doctorSpecialty}</div>
+                    <div class="visit-diagnosis">🩺 تشخیص: ${visit.diagnosis}</div>
+                    <div class="visit-prescription">
+                        <strong>💊 نسخه:</strong><br>
+                        ${visit.prescription}
+                    </div>
+                </div>
+            `;
+            });
+            container.innerHTML = html;
+        }
+        // ========== نسخه‌ها ==========
+        function renderPrescriptions() {
+            const visits = getVisitHistory();
+            const container = document.getElementById('prescriptions-list');
+            const prescriptions = visits.filter(v => v.prescription && v.prescription !== 'نسخه ثبت نشده است');
+            if (prescriptions.length === 0) {
+                container.innerHTML = `
+                <div class="info-card" style="text-align:center;">
+                    <div style="font-size:48px; margin-bottom:12px;">💊</div>
+                    <p>هیچ نسخه‌ای ثبت نشده است</p>
+                </div>
+            `;
+                return;
+            }
+            let html = '';
+            prescriptions.forEach(p => {
+                html += `
+                <div class="info-card">
+                    <div class="card-title">📅 ${p.date} - ${p.doctorName}</div>
+                    <div class="visit-prescription" style="margin-top:8px;">
+                        ${p.prescription}
+                    </div>
+                    <button class="edit-btn" style="margin-top:12px;" onclick="showToast('نسخه در حال چاپ...', 'success')">
+                        🖨️ چاپ نسخه
+                    </button>
+                </div>
+            `;
+            });
+            container.innerHTML = html;
+        }
+        // ========== دانلود PDF (شبیه‌سازی) ==========
+        function downloadHealthRecord() {
+            showToast('📄 در حال آماده‌سازی پرونده سلامت...', 'success');
+            setTimeout(() => {
+                showToast('✅ پرونده سلامت با موفقیت دانلود شد', 'success');
+            }, 1500);
+        }
+        // ========== تب‌ها ==========
+        function setupTabs() {
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', function () {
+                    const tabName = this.getAttribute('data-tab');
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    document.getElementById(`tab-${tabName}`).classList.add('active');
+                    // رفرش محتوای تب‌ها
+                    if (tabName === 'overview') renderOverview();
+                    else if (tabName === 'info') {
+                        renderPersonalInfo();
+                        renderMedicalInfo();
+                    }
+                    else if (tabName === 'visits') renderVisits();
+                    else if (tabName === 'prescriptions') renderPrescriptions();
+                });
+            });
+        }
+        // ========== بروزرسانی نوار پایینی ==========
+        function updateActiveNav() {
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.querySelector('.nav-label')?.innerText === 'پرونده') {
+                    item.classList.add('active');
+                }
+            });
+        }
+        // ========== اجرای اولیه ==========
+        function init() {
+            currentUser = getCurrentUser();
+            if (!currentUser) return;
+            
+            getHealthRecord();
+            // اگر کاربر پزشک است، به پنل پزشک هدایت شود
+            if (currentUser.role === 'doctor') {
+                window.location.href = 'doctor-dashboard.html';
+                return;
+            }
+            setupTabs();
+            renderOverview();
+            renderPersonalInfo();
+            renderMedicalInfo();
+            renderVisits();
+            renderPrescriptions();
+            updateActiveNav();
+        }
+        init();
+    </script>
+</body>
+
+</html>

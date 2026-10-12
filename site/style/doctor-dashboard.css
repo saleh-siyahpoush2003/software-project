@@ -1,0 +1,334 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Vazirmatn', sans-serif;
+    background: #F8F9FA;
+    min-height: 100vh;
+    padding-bottom: 30px;
+}
+
+/* نوار بالایی */
+.header {
+    background: white;
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logo-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #2B7A8B 0%, #28A745 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
+
+.greeting h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #343A40;
+}
+
+.greeting p {
+    font-size: 12px;
+    color: #6C757D;
+}
+
+.icon-btn {
+    background: none;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+}
+
+/* کارت‌های آمار */
+.stats-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin: 20px 16px;
+}
+
+.stat-card {
+    background: white;
+    padding: 16px 8px;
+    text-align: center;
+    border-radius: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    border: 1px solid #E9ECEF;
+}
+
+.stat-number {
+    font-size: 28px;
+    font-weight: 800;
+    color: #2B7A8B;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: #6C757D;
+    margin-top: 4px;
+}
+
+/* بخش امروز */
+.section-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 0 16px 12px;
+}
+
+.section-title h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #343A40;
+}
+
+.today-badge {
+    background: #28A745;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+}
+
+/* لیست نوبت‌ها */
+.appointments-list {
+    margin: 0 16px;
+}
+
+.appointment-card {
+    background: white;
+    border-radius: 20px;
+    padding: 16px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    border: 1px solid #E9ECEF;
+}
+
+.appointment-time {
+    background: #2B7A8B10;
+    padding: 8px 12px;
+    border-radius: 16px;
+    text-align: center;
+    min-width: 70px;
+}
+
+.appointment-time .time {
+    font-size: 16px;
+    font-weight: 700;
+    color: #2B7A8B;
+}
+
+.appointment-time .status {
+    font-size: 10px;
+    color: #28A745;
+}
+
+.appointment-info {
+    flex: 1;
+    margin: 0 12px;
+}
+
+.patient-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #343A40;
+}
+
+.patient-details {
+    font-size: 12px;
+    color: #6C757D;
+    margin-top: 4px;
+}
+
+.view-btn {
+    background: #2B7A8B;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 40px;
+    font-size: 12px;
+    font-family: 'Vazirmatn', sans-serif;
+    cursor: pointer;
+}
+
+/* مودال پرونده بیمار */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.modal.active {
+    display: flex;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 32px;
+    width: 100%;
+    max-width: 550px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    padding: 20px;
+    border-bottom: 1px solid #E9ECEF;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    background: white;
+}
+
+.modal-header h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #343A40;
+}
+
+.close-modal {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.info-row {
+    display: flex;
+    margin-bottom: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid #E9ECEF;
+}
+
+.info-label {
+    width: 100px;
+    font-weight: 600;
+    color: #6C757D;
+}
+
+.info-value {
+    flex: 1;
+    color: #343A40;
+}
+
+.medical-history {
+    background: #F8F9FA;
+    padding: 12px;
+    border-radius: 16px;
+    margin: 16px 0;
+}
+
+.prescription {
+    background: #F0FDF4;
+    padding: 12px;
+    border-radius: 16px;
+    margin: 12px 0;
+}
+
+/* استایل فرم ثبت نسخه جدید */
+.prescription-form {
+    background: #F0F9FF;
+    padding: 16px;
+    border-radius: 20px;
+    margin-top: 20px;
+    border: 1px dashed #0284C7;
+}
+
+.prescription-form h4 {
+    font-size: 14px;
+    color: #0284C7;
+    margin-bottom: 12px;
+}
+
+.prescription-form textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #E9ECEF;
+    border-radius: 12px;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 13px;
+    resize: none;
+    margin-bottom: 10px;
+}
+
+/* جستجو */
+.search-box {
+    margin: 0 16px 16px;
+}
+
+.search-box input {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1px solid #E9ECEF;
+    border-radius: 50px;
+    font-size: 14px;
+    font-family: 'Vazirmatn', sans-serif;
+}
+
+/* toast */
+.toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #343A40;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 40px;
+    font-size: 13px;
+    z-index: 300;
+    display: none;
+}
+
+.toast.success {
+    background: #28A745;
+}
+
+.toast.error {
+    background: #DC3545;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px;
+    color: #6C757D;
+}
